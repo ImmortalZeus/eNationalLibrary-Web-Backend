@@ -1,3 +1,5 @@
+import { ReadingCardController } from './modules/reading-card/reading-card.controller';
+import { ReadingCardModule } from './modules/reading-card/reading-card.module';
 import { ReaderModule } from './modules/reader/reader.module';
 import { ReaderService } from './modules/reader/reader.service';
 import { AdminModule } from './modules/admin/admin.module';
@@ -13,8 +15,8 @@ import { UserController } from './modules/user/user.controller';
 import { UserService } from './modules/user/user.service';
 
 @Module({
-    imports: [MongooseModule.forRoot('mongodb://localhost:27017/mydb'), ReaderModule, AdminModule, UserModule,],
-    controllers: [],
-    providers: [],
+    imports: [ReadingCardModule, ReadingCardModule, MongooseModule.forRoot('mongodb://localhost:27017/mydb'), ReaderModule, AdminModule, UserModule, ReadingCardModule],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule { }
