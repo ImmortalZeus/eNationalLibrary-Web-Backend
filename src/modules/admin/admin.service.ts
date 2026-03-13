@@ -5,10 +5,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Admin, AdminDocument } from './admin.schema';
 import { BaseService } from 'src/common/base.service';
+import { AdminPublicDto } from './dto/admin-public.dto';
 
 @Injectable()
-export class AdminService extends BaseService<Admin> {
+export class AdminService extends BaseService<Admin, AdminPublicDto> {
     constructor(@InjectModel(Admin.name) adminModel: Model<Admin>) {
-        super(adminModel);
+        super(adminModel, AdminPublicDto);
     }
 }

@@ -1,4 +1,3 @@
-// user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
 import { UserGender } from 'src/common/enums/user/userGender.enum';

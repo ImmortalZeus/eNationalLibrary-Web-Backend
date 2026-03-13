@@ -3,6 +3,7 @@ import { CreateReaderDto } from './dto/create-reader.dto';
 import { UpdateReaderDto } from './dto/update-reader.dto';
 import { ReaderService } from './reader.service';
 import { Reader } from './reader.schema';
+import { ReaderPublicDto } from './dto/reader-public.dto';
 
 @Controller('readers')
 export class ReaderController {
@@ -10,31 +11,31 @@ export class ReaderController {
 
     // CREATE
     @Post()
-    async create(@Body() createReaderDto: CreateReaderDto): Promise<Reader> {
+    async create(@Body() createReaderDto: CreateReaderDto): Promise<ReaderPublicDto> {
         return this.readerService.create(createReaderDto);
     }
 
     // READ ALL
     @Get()
-    async findAll(): Promise<Reader[]> {
+    async findAll(): Promise<ReaderPublicDto[]> {
         return this.readerService.findAll();
     }
 
     // READ ONE
     @Get(':id')
-    async findOne(@Param('id') id: string): Promise<Reader | null> {
+    async findOne(@Param('id') id: string): Promise<ReaderPublicDto | null> {
         return this.readerService.findOne(id);
     }
 
     // UPDATE
     @Put(':id')
-    async update(@Param('id') id: string, @Body() updateReaderDto: UpdateReaderDto): Promise<Reader | null> {
+    async update(@Param('id') id: string, @Body() updateReaderDto: UpdateReaderDto): Promise<ReaderPublicDto | null> {
         return this.readerService.update(id, updateReaderDto);
     }
     
     // DELETE
     @Delete(':id')
-    async remove(@Param('id') id: string): Promise<Reader | null> {
+    async remove(@Param('id') id: string): Promise<ReaderPublicDto | null> {
         return this.readerService.remove(id);
     }
 }
