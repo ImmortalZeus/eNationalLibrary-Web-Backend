@@ -8,6 +8,6 @@ import { ReadingCard, ReadingCardSchema } from './reading-card.schema';
     imports: [MongooseModule.forFeature([{ name: ReadingCard.name, schema: ReadingCardSchema }])],
     controllers: [ReadingCardController,],
     providers: [ReadingCardService,],
-    exports: []
+    exports: [ReadingCardService]
 })
 export class ReadingCardModule { }
