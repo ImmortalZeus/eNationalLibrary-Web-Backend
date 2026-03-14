@@ -3,10 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Reader } from './reader.entity';
 import { ReaderService } from './reader.service';
 import { ReaderController } from './reader.controller';
-import { User } from '../user/user.entity';
+import { UserModule } from '../user/user.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Reader, User])],
+    imports: [
+        TypeOrmModule.forFeature([Reader]),
+        UserModule
+    ],
     controllers: [ReaderController],
     providers: [ReaderService],
     exports: [ReaderService]

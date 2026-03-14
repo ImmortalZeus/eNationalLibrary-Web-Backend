@@ -7,15 +7,14 @@ import { CreateReaderDto } from './dto/create-reader.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateReaderDto } from './dto/update-reader.dto';
 import { ReaderMapper } from './reader.mapper';
-import { User } from '../user/user.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ReaderService {
     constructor(
-        @InjectRepository(User)
-        private readonly userRepo: Repository<User>,
         @InjectRepository(Reader)
         private readonly readerRepo: Repository<Reader>,
+        private readonly userService: UserService,
     ) {}
 
     async create(dto: CreateReaderDto): Promise<ReaderPublicDto> {
@@ -25,9 +24,9 @@ export class ReaderService {
         }
 
         const reader = ReaderMapper.createFromDto(dto);
-       
+
         if(reader.user) {
-            await this.userRepo.save(reader.user);
+            const userPublicDto = await this.userService.create(reader.user);
         }
 
         const saved = await this.readerRepo.save(reader);
@@ -67,7 +66,7 @@ export class ReaderService {
         ReaderMapper.updateFromDto(reader, dto);
         
         if(reader.user) {
-            await this.userRepo.save(reader.user);
+            const userPublicDto = await this.userService.updateOneByOptions({ userId: reader.user.userId }, reader.user);
         }
 
         const saved = await this.readerRepo.save(reader);
@@ -82,8 +81,9 @@ export class ReaderService {
             ReaderMapper.updateFromDto(reader, dto);
 
             if (reader.user) {
-                await this.userRepo.save(reader.user);
+                const userPublicDto = await this.userService.updateOneByOptions({ userId: reader.user.userId }, reader.user);
             }
+
             await this.readerRepo.save(reader);
         }
 
@@ -99,12 +99,20 @@ export class ReaderService {
         const reader = await this.readerRepo.findOne({ where: options });
         if (!reader) return null;
         await this.readerRepo.remove(reader);
+        if (reader.user) {
+            const userPublicDto = await this.userService.removeOneByOptions({ userId: reader.user.userId });
+        }
         return ReaderMapper.toReaderPublicDto(reader);
     }
 
     async removeManyByOptions(options: FindOptionsWhere<Reader>): Promise<ReaderPublicDto[]> {
         const readers = await this.readerRepo.find({ where: options });
         await this.readerRepo.remove(readers);
+        for (const reader of readers) {
+            if (reader.user) {
+                const userPublicDto = await this.userService.removeOneByOptions({ userId: reader.user.userId });
+            }
+        }
         return readers.map(reader => ReaderMapper.toReaderPublicDto(reader));
     }
 

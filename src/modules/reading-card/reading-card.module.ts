@@ -5,7 +5,9 @@ import { ReadingCardService } from './reading-card.service';
 import { ReadingCardController } from './reading-card.controller'; 
 
 @Module({
-    imports: [TypeOrmModule.forFeature([ReadingCard])],
+    imports: [
+        TypeOrmModule.forFeature([ReadingCard])
+    ],
     controllers: [ReadingCardController],
     providers: [ReadingCardService],
     exports: [ReadingCardService]
