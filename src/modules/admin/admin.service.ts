@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Admin } from './admin.entity';
@@ -19,6 +19,11 @@ export class AdminService {
     ) {}
 
     async create(dto: CreateAdminDto): Promise<AdminPublicDto> {
+        const existing = await this.adminRepo.findOneBy({ userId: dto.userId });
+        if (existing) {
+            throw new ConflictException('userId already exists');
+        }
+
         const admin = this.adminRepo.create(dto);
         
         if(admin.user) {

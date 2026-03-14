@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Reader } from './reader.entity';
@@ -19,6 +19,11 @@ export class ReaderService {
     ) {}
 
     async create(dto: CreateReaderDto): Promise<ReaderPublicDto> {
+        const existing = await this.readerRepo.findOneBy({ userId: dto.userId });
+        if (existing) {
+            throw new ConflictException('userId already exists');
+        }
+
         const reader = ReaderMapper.createFromDto(dto);
        
         if(reader.user) {

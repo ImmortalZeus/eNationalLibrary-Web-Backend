@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { ReadingCard } from './reading-card.entity';
@@ -16,6 +16,11 @@ export class ReadingCardService {
     ) {}
 
     async create(dto: CreateReadingCardDto): Promise<ReadingCardPublicDto> {
+        const existing = await this.readingCardRepo.findOneBy({ readingCardId: dto.readingCardId });
+        if (existing) {
+            throw new ConflictException('readingCardId already exists');
+        }
+        
         const readingCard = this.readingCardRepo.create(dto);
         
         const saved = await this.readingCardRepo.save(readingCard);
