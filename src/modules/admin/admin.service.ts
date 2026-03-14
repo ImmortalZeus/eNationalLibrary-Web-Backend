@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { BaseService } from 'src/common/base.service';
 import { Admin } from './admin.entity';
 import { AdminPublicDto } from './dto/admin-public.dto';
 import { CreateAdminDto } from './dto/create-admin.dto';

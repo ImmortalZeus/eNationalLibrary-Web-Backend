@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { BaseService } from 'src/common/base.service';
 import { User } from './user.entity';
 import { UserPublicDto } from './dto/user-public.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserMapper } from './user.mapper';
 
 @Injectable()
 export class UserService {
@@ -16,11 +16,11 @@ export class UserService {
     ) {}
 
     async create(dto: CreateUserDto): Promise<UserPublicDto> {
-        const entity = this.userRepo.create(dto);
-        const saved = await this.userRepo.save(entity);
-        return plainToInstance(UserPublicDto, saved, {
-            excludeExtraneousValues: true,
-        });
+        const user = this.userRepo.create(dto);
+
+        const saved = await this.userRepo.save(user);
+        
+        return UserMapper.toUserPublicDto(saved);
     }
 
     async findOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
@@ -29,17 +29,14 @@ export class UserService {
     }
 
     async findOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
-        const entity = await this.userRepo.findOne({ where: options });
-        return entity
-            ? plainToInstance(UserPublicDto, entity, { excludeExtraneousValues: true })
-            : null;
+        const user = await this.userRepo.findOne({ where: options });
+        if(!user) return null;
+        return UserMapper.toUserPublicDto(user);
     }
 
     async findManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
-        const entities = await this.userRepo.find({ where: options });
-        return plainToInstance(UserPublicDto, entities, {
-            excludeExtraneousValues: true,
-        });
+        const users = await this.userRepo.find({ where: options });
+        return users.map(user => UserMapper.toUserPublicDto(user));
     }
 
     async findAll(): Promise<UserPublicDto[]> {
@@ -52,17 +49,25 @@ export class UserService {
     }
 
     async updateOneByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto | null> {
-        await this.userRepo.update(options, dto);
-        const updatedEntity = await this.userRepo.findOne({ where: options });
-        return updatedEntity
-            ? plainToInstance(UserPublicDto, updatedEntity, { excludeExtraneousValues: true })
-            : null;
+        const user = await this.userRepo.findOne({ where: options });
+        if(!user) return null;
+        
+        UserMapper.updateFromDto(user, dto);
+
+        const saved = await this.userRepo.save(user);
+
+        return UserMapper.toUserPublicDto(saved);
     }
 
     async updateManyByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto[]> {
-        await this.userRepo.update(options, dto);
-        const updatedEntities = await this.userRepo.find({ where: options });
-        return plainToInstance(UserPublicDto, updatedEntities, { excludeExtraneousValues: true });
+        const users = await this.userRepo.find({ where: options });
+        
+        for (const user of users) {
+            UserMapper.updateFromDto(user, dto);
+            await this.userRepo.save(user);
+        }
+
+        return users.map(user => UserMapper.toUserPublicDto(user));
     }
 
     async removeOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
@@ -71,15 +76,15 @@ export class UserService {
     }
 
     async removeOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
-        const entity = await this.userRepo.findOne({ where: options });
-        if (!entity) return null;
-        await this.userRepo.remove(entity);
-        return plainToInstance(UserPublicDto, entity, { excludeExtraneousValues: true });
+        const user = await this.userRepo.findOne({ where: options });
+        if (!user) return null;
+        await this.userRepo.remove(user);
+        return UserMapper.toUserPublicDto(user);
     }
 
     async removeManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
-        const entities = await this.userRepo.find({ where: options });
-        await this.userRepo.remove(entities);
-        return plainToInstance(UserPublicDto, entities, { excludeExtraneousValues: true });
+        const users = await this.userRepo.find({ where: options });
+        await this.userRepo.remove(users);
+        return users.map(user => UserMapper.toUserPublicDto(user));
     }
 }

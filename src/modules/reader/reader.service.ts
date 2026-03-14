@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { BaseService } from 'src/common/base.service';
 import { Reader } from './reader.entity';
 import { ReaderPublicDto } from './dto/reader-public.dto';
 import { CreateReaderDto } from './dto/create-reader.dto';
