@@ -1,13 +1,13 @@
-import { ReadingCardService } from './reading-card.service';
-import { ReadingCardController } from './reading-card.controller';
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ReadingCard, ReadingCardSchema } from './reading-card.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ReadingCard } from './reading-card.entity';
+import { ReadingCardService } from './reading-card.service';
+import { ReadingCardController } from './reading-card.controller'; 
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: ReadingCard.name, schema: ReadingCardSchema }])],
-    controllers: [ReadingCardController,],
-    providers: [ReadingCardService,],
+    imports: [TypeOrmModule.forFeature([ReadingCard])],
+    controllers: [ReadingCardController],
+    providers: [ReadingCardService],
     exports: [ReadingCardService]
 })
-export class ReadingCardModule { }
+export class ReadingCardModule {}

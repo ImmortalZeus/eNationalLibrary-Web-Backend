@@ -2,7 +2,7 @@ import { Body, Controller, Param, Get, Post, Put, Delete } from '@nestjs/common'
 import { CreateReadingCardDto } from './dto/create-reading-card.dto';
 import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { ReadingCardService } from './reading-card.service';
-import { ReadingCard } from './reading-card.schema'
+import { ReadingCard } from './reading-card.entity'
 import { ReadingCardPublicDto } from './dto/reading-card-public.dto';
 
 @Controller('reading-cards')
@@ -23,19 +23,19 @@ export class ReadingCardController {
 
     // READ ONE
     @Get(':id')
-    async findOne(@Param('id') id: string): Promise<ReadingCardPublicDto | null> {
-        return this.readingCardService.findOne(id);
+    async findOneById(@Param('id') id: string): Promise<ReadingCardPublicDto | null> {
+        return this.readingCardService.findOneById(id);
     }
 
     // UPDATE
     @Put(':id')
-    async update(@Param('id') id: string, @Body() updateReadingCardDto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
-        return this.readingCardService.update(id, updateReadingCardDto);
+    async updateOneById(@Param('id') id: string, @Body() updateReadingCardDto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
+        return this.readingCardService.updateOneById(id, updateReadingCardDto);
     }
 
     // DELETE
     @Delete(':id')
-    async remove(@Param('id') id: string): Promise<ReadingCardPublicDto | null> {
-        return this.readingCardService.remove(id);
+    async removeOneById(@Param('id') id: string): Promise<ReadingCardPublicDto | null> {
+        return this.readingCardService.removeOneById(id);
     }
 }

@@ -1,46 +1,85 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from './user.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { BaseService } from 'src/common/base.service';
+import { User } from './user.entity';
 import { UserPublicDto } from './dto/user-public.dto';
-
-// @Injectable()
-// export class UserService {
-//     constructor(@InjectModel(User.name) private userModel: Model<User>) {}
-
-//     // CREATE
-//     async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-//         const newUser = new this.userModel(createUserDto);
-//         return newUser.save();
-//     }
-
-//     // READ ALL
-//     async findAll(): Promise<UserDocument[]> {
-//         return this.userModel.find().exec();
-//     }
-
-//     // READ ONE
-//     async findOne(id: string): Promise<UserDocument | null> {
-//         return this.userModel.findById(id).exec();
-//     }
-
-//     // UPDATE
-//     async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument | null> {
-//         return this.userModel.findOneAndUpdate({ _id: id }, updateUserDto, { new: true }).exec();
-//     }
-
-//     // DELETE
-//     async remove(id: string): Promise<UserDocument | null> {
-//         return this.userModel.findByIdAndDelete(id).exec();
-//     }
-// }
+import { CreateUserDto } from './dto/create-user.dto';
+import { plainToInstance } from 'class-transformer';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
-export class UserService extends BaseService<User, UserPublicDto> {
-    constructor(@InjectModel(User.name) userModel: Model<User>) {
-        super(userModel, UserPublicDto);
+export class UserService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepo: Repository<User>,
+    ) {}
+
+    async create(dto: CreateUserDto): Promise<UserPublicDto> {
+        const entity = this.userRepo.create(dto);
+        const saved = await this.userRepo.save(entity);
+        return plainToInstance(UserPublicDto, saved, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async findOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
+        const options = typeof id === "string" ? { userId: id } : id;
+        return this.findOneByOptions(options);
+    }
+
+    async findOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
+        const entity = await this.userRepo.findOne({ where: options });
+        return entity
+            ? plainToInstance(UserPublicDto, entity, { excludeExtraneousValues: true })
+            : null;
+    }
+
+    async findManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
+        const entities = await this.userRepo.find({ where: options });
+        return plainToInstance(UserPublicDto, entities, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async findAll(): Promise<UserPublicDto[]> {
+        return this.findManyByOptions({});
+    }
+
+    async updateOneById(id: string | { userId: string }, dto: UpdateUserDto): Promise<UserPublicDto | null> {
+        const options = typeof id === "string" ? { userId: id } : id;
+        return this.updateOneByOptions(options, dto);
+    }
+
+    async updateOneByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto | null> {
+        await this.userRepo.update(options, dto);
+        const updatedEntity = await this.userRepo.findOne({ where: options });
+        return updatedEntity
+            ? plainToInstance(UserPublicDto, updatedEntity, { excludeExtraneousValues: true })
+            : null;
+    }
+
+    async updateManyByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto[]> {
+        await this.userRepo.update(options, dto);
+        const updatedEntities = await this.userRepo.find({ where: options });
+        return plainToInstance(UserPublicDto, updatedEntities, { excludeExtraneousValues: true });
+    }
+
+    async removeOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
+        const options = typeof id === "string" ? { userId: id } : id;
+        return this.removeOneByOptions(options);
+    }
+
+    async removeOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
+        const entity = await this.userRepo.findOne({ where: options });
+        if (!entity) return null;
+        await this.userRepo.remove(entity);
+        return plainToInstance(UserPublicDto, entity, { excludeExtraneousValues: true });
+    }
+
+    async removeManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
+        const entities = await this.userRepo.find({ where: options });
+        await this.userRepo.remove(entities);
+        return plainToInstance(UserPublicDto, entities, { excludeExtraneousValues: true });
     }
 }

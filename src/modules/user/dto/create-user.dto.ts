@@ -22,7 +22,7 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsString()
-    phoneNumber?: string | null;
+    phoneNumber: string | null;
 
     @IsEnum(UserRole)
     role: UserRole;

@@ -1,62 +1,124 @@
-import { Model, HydratedDocument, QueryFilter, UpdateQuery } from 'mongoose';
+import { Repository, DeepPartial, FindOptions, QueryDeepPartialEntity, ObjectLiteral, FindManyOptions, FindOneOptions, FindOptionsWhere } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 
-export class BaseService<TSchema, TPublicDto> {
-    constructor(
-        protected readonly model: Model<TSchema>,
-        private readonly publicDtoClass: new (...args: any[]) => TPublicDto
-    ) {}
+export class BaseService<TEntity extends ObjectLiteral, TPublicDto> {
+    private readonly idField: keyof TEntity;
+    protected readonly repo: Repository<TEntity>;
+    private readonly publicDtoClass: new (...args: any[]) => TPublicDto;
 
-    async create(dto: Partial<TSchema>): Promise<TPublicDto> {
-        const doc = await this.model.create(dto);
-        return plainToInstance(this.publicDtoClass, doc.toObject(), {
-            excludeExtraneousValues: true,
-        })
+    constructor(
+        repo: Repository<TEntity>,
+        publicDtoClass: new (...args: any[]) => TPublicDto,
+    ) {
+        this.repo = repo;
+        this.publicDtoClass = publicDtoClass;
+
+        const primaryColumn = this.repo.metadata.primaryColumns[0];
+        this.idField = primaryColumn.propertyName as keyof TEntity;;
     }
 
-    async findAll(filter: QueryFilter<TSchema> = {}): Promise<TPublicDto[]> {
-        const docs = await this.model.find(filter).lean().exec();
-        return plainToInstance(this.publicDtoClass, docs, {
+    async create(dto: DeepPartial<TEntity>): Promise<TPublicDto> {
+        const entity = this.repo.create(dto);
+        const saved = await this.repo.save(entity);
+        return plainToInstance(this.publicDtoClass, saved, {
             excludeExtraneousValues: true,
         });
     }
 
-    async findOne(id: string): Promise<TPublicDto | null>;
-    async findOne(filter: QueryFilter<TSchema>): Promise<TPublicDto | null>;
-    async findOne(arg: string | QueryFilter<TSchema>): Promise<TPublicDto | null> {
-        const filter = typeof arg === "string" ? {_id: arg} : arg;
-        const doc = await this.model.findOne(filter).lean().exec();
-        return doc
-            ? plainToInstance(this.publicDtoClass, doc, { excludeExtraneousValues: true })
+    async findOneById(id: string | Partial<TEntity>): Promise<TPublicDto | null> {
+        let options: FindOptionsWhere<TEntity>;
+        if (typeof id === 'string' || typeof id === 'number') {
+            // Trường hợp chỉ có 1 primary key
+            options = { [this.idField]: id } as FindOptionsWhere<TEntity>;
+        } else {
+            // Trường hợp composite key: truyền object chứa đủ các key
+            options = id as FindOptionsWhere<TEntity>;
+        }
+
+        const entity = await this.repo.findOne({ where: options });
+        return entity
+            ? plainToInstance(this.publicDtoClass, entity, { excludeExtraneousValues: true })
             : null;
     }
 
-    async findById(id: string): Promise<TPublicDto | null> {
-        return this.findOne(id);
-    }
-
-    async update(id: string, dto: UpdateQuery<TSchema>): Promise<TPublicDto | null>;
-    async update(filter: { _id: string }, dto: UpdateQuery<TSchema>): Promise<TPublicDto | null>;
-    async update(arg: string | { _id: string }, dto: UpdateQuery<TSchema>): Promise<TPublicDto | null> {
-        const id = typeof arg === "string" ? arg : arg._id;
-
-        const doc = await this.model.findOneAndUpdate({ _id: id }, dto, {
-            new: true,
-            runValidators: true,
-        }).lean().exec();
-
-        return doc
-            ? plainToInstance(this.publicDtoClass, doc, { excludeExtraneousValues: true })
+    async findOneByOptions(options: FindOptionsWhere<TEntity>): Promise<TPublicDto | null> {
+        const entity = await this.repo.findOne({ where: options });
+        return entity
+            ? plainToInstance(this.publicDtoClass, entity, { excludeExtraneousValues: true })
             : null;
     }
 
-    async remove(id: string): Promise<TPublicDto | null>;
-    async remove(filter: { _id: string }): Promise<TPublicDto | null>;
-    async remove(arg: string | { _id: string }): Promise<TPublicDto | null> {
-        const id = typeof arg === "string" ? arg : arg._id;
-        const doc = await this.model.findOneAndDelete({ _id: id }).lean().exec();
-        return doc
-            ? plainToInstance(this.publicDtoClass, doc, { excludeExtraneousValues: true })
+    async findManyByOptions(options: FindOptionsWhere<TEntity>): Promise<TPublicDto[]> {
+        const entities = await this.repo.find({ where: options });
+        return plainToInstance(this.publicDtoClass, entities, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async findAll(): Promise<TPublicDto[]> {
+        const entities = await this.repo.find({ where: {} });
+        return plainToInstance(this.publicDtoClass, entities, {
+            excludeExtraneousValues: true,
+        });
+    }
+
+    async updateOneById(id: string | Partial<TEntity>, dto: QueryDeepPartialEntity<TEntity>): Promise<TPublicDto | null> {
+        let options: FindOptionsWhere<TEntity>;
+        if (typeof id === 'string' || typeof id === 'number') {
+            // Trường hợp chỉ có 1 primary key
+            options = { [this.idField]: id } as FindOptionsWhere<TEntity>;
+        } else {
+            // Trường hợp composite key: truyền object chứa đủ các key
+            options = id as FindOptionsWhere<TEntity>;
+        }
+
+        await this.repo.update(options, dto);
+        const updatedEntity = await this.repo.findOne({ where: options });
+        return updatedEntity
+            ? plainToInstance(this.publicDtoClass, updatedEntity, { excludeExtraneousValues: true })
             : null;
+    }
+
+    async updateOneByOptions(options: FindOptionsWhere<TEntity>, dto: QueryDeepPartialEntity<TEntity>): Promise<TPublicDto | null> {
+        await this.repo.update(options, dto);
+        const updatedEntity = await this.repo.findOne({ where: options });
+        return updatedEntity
+            ? plainToInstance(this.publicDtoClass, updatedEntity, { excludeExtraneousValues: true })
+            : null;
+    }
+
+    async updateManyByOptions(options: FindOptionsWhere<TEntity>, dto: QueryDeepPartialEntity<TEntity>): Promise<TPublicDto[]> {
+        await this.repo.update(options, dto);
+        const updatedEntities = await this.repo.find({ where: options });
+        return plainToInstance(this.publicDtoClass, updatedEntities, { excludeExtraneousValues: true });
+    }
+
+    async removeOneById(id: string): Promise<TPublicDto | null> {
+        let options: FindOptionsWhere<TEntity>;
+        if (typeof id === 'string' || typeof id === 'number') {
+            // Trường hợp chỉ có 1 primary key
+            options = { [this.idField]: id } as FindOptionsWhere<TEntity>;
+        } else {
+            // Trường hợp composite key: truyền object chứa đủ các key
+            options = id as FindOptionsWhere<TEntity>;
+        }
+
+        const entity = await this.repo.findOne({ where: options });
+        if (!entity) return null;
+        await this.repo.remove(entity);
+        return plainToInstance(this.publicDtoClass, entity, { excludeExtraneousValues: true });
+    }
+
+    async removeOneByOptions(options: FindOptionsWhere<TEntity>): Promise<TPublicDto | null> {
+        const entity = await this.repo.findOne({ where: options });
+        if (!entity) return null;
+        await this.repo.remove(entity);
+        return plainToInstance(this.publicDtoClass, entity, { excludeExtraneousValues: true });
+    }
+
+    async removeManyByOptions(options: FindOptionsWhere<TEntity>): Promise<TPublicDto[]> {
+        const entities = await this.repo.find({ where: options });
+        await this.repo.remove(entities);
+        return plainToInstance(this.publicDtoClass, entities, { excludeExtraneousValues: true });
     }
 }

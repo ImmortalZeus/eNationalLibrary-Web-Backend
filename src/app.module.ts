@@ -13,9 +13,33 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ReaderController } from './modules/reader/reader.controller';
 import { UserController } from './modules/user/user.controller';
 import { UserService } from './modules/user/user.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
-    imports: [ReadingCardModule, ReadingCardModule, MongooseModule.forRoot('mongodb://localhost:27017/mydb'), ReaderModule, AdminModule, UserModule, ReadingCardModule],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true, // để dùng ở mọi module mà không cần import lại
+        }),
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                type: 'postgres',
+                host: config.get<string>('DB_HOST'),
+                port: config.get<number>('DB_PORT'),
+                username: config.get<string>('DB_USER'),
+                password: config.get<string>('DB_PASS'),
+                database: config.get<string>('DB_NAME'),
+                autoLoadEntities: true, // tự động load entity từ các module
+                synchronize: true, // chỉ bật trong dev
+            }),
+        }),
+        ReaderModule,
+        AdminModule,
+        UserModule,
+        ReadingCardModule
+    ],
     controllers: [AppController],
     providers: [AppService],
 })

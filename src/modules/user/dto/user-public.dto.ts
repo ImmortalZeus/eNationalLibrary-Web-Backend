@@ -18,7 +18,7 @@ export class UserPublicDto {
     email: string;
 
     @Expose()
-    phoneNumber?: string | null;
+    phoneNumber: string | null;
 
     @Expose()
     role: UserRole;

@@ -2,7 +2,7 @@ import { Body, Controller, Param, Get, Post, Put, Delete } from '@nestjs/common'
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminService } from './admin.service';
-import { Admin } from './admin.schema';
+import { Admin } from './admin.entity';
 import { AdminPublicDto } from './dto/admin-public.dto';
 
 @Controller('admins')
@@ -23,19 +23,19 @@ export class AdminController {
 
     // READ ONE
     @Get(':id')
-    async findOne(@Param('id') id: string): Promise<AdminPublicDto | null> {
-        return this.adminService.findOne(id);
+    async findOneById(@Param('id') id: string): Promise<AdminPublicDto | null> {
+        return this.adminService.findOneById(id);
     }
 
     // UPDATE
     @Put(':id')
-    async update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto): Promise<AdminPublicDto | null> {
-        return this.adminService.update(id, updateAdminDto);
+    async updateOneById(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto): Promise<AdminPublicDto | null> {
+        return this.adminService.updateOneById(id, updateAdminDto);
     }
 
     // DELETE
     @Delete(':id')
-    async remove(@Param('id') id: string): Promise<AdminPublicDto | null> {
-        return this.adminService.remove(id);
+    async removeOneById(@Param('id') id: string): Promise<AdminPublicDto | null> {
+        return this.adminService.removeOneById(id);
     }
 }

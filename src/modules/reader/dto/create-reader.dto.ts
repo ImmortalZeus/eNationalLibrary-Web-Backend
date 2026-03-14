@@ -7,7 +7,7 @@ import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 export class CreateReaderDto extends CreateUserDto {
     @IsOptional()
     @IsString()
-    address?: string | null;
+    address: string | null;
 
     @IsArray()
     @IsString({ each: true })

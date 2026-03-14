@@ -2,7 +2,7 @@ import { Body, Controller, Param, Get, Post, Put, Delete } from '@nestjs/common'
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
-import { User } from './user.schema'
+import { User } from './user.entity'
 import { UserPublicDto } from './dto/user-public.dto';
 
 @Controller('users')
@@ -23,19 +23,19 @@ export class UserController {
 
     // READ ONE
     @Get(':id')
-    async findOne(@Param('id') id: string): Promise<UserPublicDto | null> {
-        return this.userService.findOne(id);
+    async findOneById(@Param('id') id: string): Promise<UserPublicDto | null> {
+        return this.userService.findOneById(id);
     }
 
     // UPDATE
     @Put(':id')
-    async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserPublicDto | null> {
-        return this.userService.update(id, updateUserDto);
+    async updateOneById(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UserPublicDto | null> {
+        return this.userService.updateOneById(id, updateUserDto);
     }
 
     // DELETE
     @Delete(':id')
-    async remove(@Param('id') id: string): Promise<UserPublicDto | null> {
-        return this.userService.remove(id);
+    async removeOneById(@Param('id') id: string): Promise<UserPublicDto | null> {
+        return this.userService.removeOneById(id);
     }
 }
