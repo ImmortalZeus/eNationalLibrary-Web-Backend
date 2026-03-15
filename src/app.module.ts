@@ -1,3 +1,6 @@
+import { AuthorModule } from './modules/author/author.module';
+import { PublisherModule } from './modules/publisher/publisher.module';
+import { CategoryModule } from './modules/category/category.module';
 import { ReadingCardController } from './modules/reading-card/reading-card.controller';
 import { ReadingCardModule } from './modules/reading-card/reading-card.module';
 import { ReaderModule } from './modules/reader/reader.module';
@@ -15,6 +18,7 @@ import { UserController } from './modules/user/user.controller';
 import { UserService } from './modules/user/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BookModule } from './modules/book/book.module';
 
 @Module({
     imports: [
@@ -38,7 +42,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         ReaderModule,
         AdminModule,
         UserModule,
-        ReadingCardModule
+        ReadingCardModule,
+        BookModule,
+        CategoryModule,
+        PublisherModule,
+        AuthorModule,
     ],
     controllers: [AppController],
     providers: [AppService],

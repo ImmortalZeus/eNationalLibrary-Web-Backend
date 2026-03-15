@@ -34,8 +34,8 @@ export class ReaderService {
         return ReaderMapper.toReaderPublicDto(saved);
     }
 
-    async findOneById(id: string | { userId: string }): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async findOneById(userId: string | { userId: string }): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.findOneByOptions(options);
     }
 
@@ -54,8 +54,8 @@ export class ReaderService {
         return this.findManyByOptions({});
     }
 
-    async updateOneById(id: string | { userId: string }, dto: UpdateReaderDto): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async updateOneById(userId: string | { userId: string }, dto: UpdateReaderDto): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.updateOneByOptions(options, dto);
     }
 
@@ -90,8 +90,8 @@ export class ReaderService {
         return readers.map(reader => ReaderMapper.toReaderPublicDto(reader));
     }
 
-    async removeOneById(id: string | { userId: string }): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async removeOneById(userId: string | { userId: string }): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.removeOneByOptions(options);
     }
 
@@ -116,8 +116,8 @@ export class ReaderService {
         return readers.map(reader => ReaderMapper.toReaderPublicDto(reader));
     }
 
-    async addReadingCardId(id: string | { userId: string }, readingCardId: string): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async addReadingCardId(userId: string | { userId: string }, readingCardId: string): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
 
         const reader = await this.readerRepo.findOne({ where: options });
         if (!reader) return null;
@@ -128,8 +128,8 @@ export class ReaderService {
         return ReaderMapper.toReaderPublicDto(saved);
     }
 
-    async removeReadingCardId(id: string | { userId: string }, readingCardId: string): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async removeReadingCardId(userId: string | { userId: string }, readingCardId: string): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
 
         const reader = await this.readerRepo.findOne({ where: options });
         if (!reader) return null;
@@ -140,8 +140,14 @@ export class ReaderService {
         return ReaderMapper.toReaderPublicDto(saved);
     }
 
-    async addBorrowRecordId(id: string | { userId: string }, borrowRecordId: string): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async clearReadingCardIds(userId: string | { userId: string }): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
+
+        return this.updateOneByOptions(options, { readingCardIds: [] });
+    }
+
+    async addBorrowRecordId(userId: string | { userId: string }, borrowRecordId: string): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
 
         const reader = await this.readerRepo.findOne({ where: options });
         if (!reader) return null;
@@ -152,8 +158,8 @@ export class ReaderService {
         return ReaderMapper.toReaderPublicDto(saved);
     }
 
-    async removeBorrowRecordId(id: string | { userId: string }, borrowRecordId: string): Promise<ReaderPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async removeBorrowRecordId(userId: string | { userId: string }, borrowRecordId: string): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         
         const reader = await this.readerRepo.findOne({ where: options });
         if (!reader) return null;
@@ -163,4 +169,12 @@ export class ReaderService {
 
         return ReaderMapper.toReaderPublicDto(saved);
     }
+
+    async clearBorrowRecordIds(userId: string | { userId: string }): Promise<ReaderPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
+
+        return this.updateOneByOptions(options, { borrowRecordIds: [] });
+    }
+
+    
 }

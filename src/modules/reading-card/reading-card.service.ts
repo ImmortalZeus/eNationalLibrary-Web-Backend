@@ -28,8 +28,8 @@ export class ReadingCardService {
         return ReadingCardMapper.toReadingCardPublicDto(saved);
     }
 
-    async findOneById(id: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
-        const options = typeof id === "string" ? { readingCardId: id } : id;
+    async findOneById(readingCardId: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
         return this.findOneByOptions(options);
     }
 
@@ -48,8 +48,8 @@ export class ReadingCardService {
         return this.findManyByOptions({});
     }
 
-    async updateOneById(id: string | { readingCardId: string }, dto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
-        const options = typeof id === "string" ? { readingCardId: id } : id;
+    async updateOneById(readingCardId: string | { readingCardId: string }, dto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
         return this.updateOneByOptions(options, dto);
     }
 
@@ -75,8 +75,8 @@ export class ReadingCardService {
         return readingCards.map(readingCard => ReadingCardMapper.toReadingCardPublicDto(readingCard));
     }
 
-    async removeOneById(id: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
-        const options = typeof id === "string" ? { readingCardId: id } : id;
+    async removeOneById(readingCardId: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
         return this.removeOneByOptions(options);
     }
 

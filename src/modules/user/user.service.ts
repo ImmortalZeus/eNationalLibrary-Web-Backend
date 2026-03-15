@@ -28,8 +28,8 @@ export class UserService {
         return UserMapper.toUserPublicDto(saved);
     }
 
-    async findOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async findOneById(userId: string | { userId: string }): Promise<UserPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.findOneByOptions(options);
     }
 
@@ -48,8 +48,8 @@ export class UserService {
         return this.findManyByOptions({});
     }
 
-    async updateOneById(id: string | { userId: string }, dto: UpdateUserDto): Promise<UserPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async updateOneById(userId: string | { userId: string }, dto: UpdateUserDto): Promise<UserPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.updateOneByOptions(options, dto);
     }
 
@@ -75,8 +75,8 @@ export class UserService {
         return users.map(user => UserMapper.toUserPublicDto(user));
     }
 
-    async removeOneById(id: string | { userId: string }): Promise<UserPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async removeOneById(userId: string | { userId: string }): Promise<UserPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.removeOneByOptions(options);
     }
 

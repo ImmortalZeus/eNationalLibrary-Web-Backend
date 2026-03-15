@@ -35,8 +35,8 @@ export class AdminService {
         return AdminMapper.toAdminPublicDto(saved);
     }
 
-    async findOneById(id: string | { userId: string }): Promise<AdminPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async findOneById(userId: string | { userId: string }): Promise<AdminPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.findOneByOptions(options);
     }
 
@@ -55,8 +55,8 @@ export class AdminService {
         return this.findManyByOptions({});
     }
 
-    async updateOneById(id: string | { userId: string }, dto: UpdateAdminDto): Promise<AdminPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async updateOneById(userId: string | { userId: string }, dto: UpdateAdminDto): Promise<AdminPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.updateOneByOptions(options, dto);
     }
 
@@ -90,8 +90,8 @@ export class AdminService {
         return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
     }
 
-    async removeOneById(id: string | { userId: string }): Promise<AdminPublicDto | null> {
-        const options = typeof id === "string" ? { userId: id } : id;
+    async removeOneById(userId: string | { userId: string }): Promise<AdminPublicDto | null> {
+        const options = typeof userId === "string" ? { userId: userId } : userId;
         return this.removeOneByOptions(options);
     }
 
