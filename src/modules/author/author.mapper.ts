@@ -10,8 +10,13 @@ export class AuthorMapper {
 
         author.authorId = dto.authorId;
         author.name = dto.name;
-        author.dateOfBirth = dto.dateOfBirth;
-        author.dateOfDeath = dto.dateOfDeath;
+
+        const tmpDateOfBirth = dto.dateOfBirth;
+        author.dateOfBirth = new Date(tmpDateOfBirth);
+
+        const tmpDateOfDeath = dto.dateOfDeath;
+        author.dateOfDeath = tmpDateOfDeath ? new Date(tmpDateOfDeath) : null;
+
         author.description = dto.description;
 
         return author;
@@ -19,8 +24,13 @@ export class AuthorMapper {
 
     static updateFromDto(author: Author, dto: UpdateAuthorDto): Author {
         author.name = dto.name === undefined ? author.name : dto.name;
-        author.dateOfBirth = dto.dateOfBirth === undefined ? author.dateOfBirth : dto.dateOfBirth;
-        author.dateOfDeath = dto.dateOfDeath === undefined ? author.dateOfDeath : dto.dateOfDeath;
+
+        const tmpDateOfBirth = dto.dateOfBirth === undefined ? author.dateOfBirth : dto.dateOfBirth;
+        author.dateOfBirth = new Date(tmpDateOfBirth);
+
+        const tmpDateOfDeath = dto.dateOfDeath === undefined ? author.dateOfDeath : dto.dateOfDeath;
+        author.dateOfDeath = tmpDateOfDeath ? new Date(tmpDateOfDeath) : null;
+        
         author.description = dto.description === undefined ? author.description : dto.description;
 
         return author;

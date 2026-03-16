@@ -21,7 +21,7 @@ export class ReadingCardService {
             throw new ConflictException('readingCardId already exists');
         }
         
-        const readingCard = this.readingCardRepo.create(dto);
+        const readingCard = ReadingCardMapper.createFromDto(dto);
         
         const saved = await this.readingCardRepo.save(readingCard);
         

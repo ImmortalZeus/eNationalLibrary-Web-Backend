@@ -24,7 +24,7 @@ export class AdminService {
             throw new ConflictException('userId already exists');
         }
 
-        const admin = this.adminRepo.create(dto);
+        const admin = AdminMapper.createFromDto(dto);
         
         if(admin.user) {
             const userPublicDto = await this.userService.create(admin.user);

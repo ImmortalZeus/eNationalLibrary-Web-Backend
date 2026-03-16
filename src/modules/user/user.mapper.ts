@@ -13,7 +13,7 @@ export class UserMapper {
         user.gender = dto.gender;
         user.email = dto.email;
         user.passwordHash = dto.passwordHash;
-        user.phoneNumber = dto.phoneNumber;
+        user.phoneNumber = dto.phoneNumber ?? null;
         user.role = dto.role;
         user.status = dto.status;
 

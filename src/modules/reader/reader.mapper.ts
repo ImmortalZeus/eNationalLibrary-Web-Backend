@@ -5,27 +5,27 @@ import { UpdateReaderDto } from './dto/update-reader.dto';
 import { CreateReaderDto } from './dto/create-reader.dto';
 import { UserPublicDto } from '../user/dto/user-public.dto';
 import { plainToInstance } from 'class-transformer';
+import { UserMapper } from '../user/user.mapper';
 
 export class ReaderMapper {
     static createFromDto(dto: CreateReaderDto): Reader {
         const reader = new Reader();
 
         reader.userId = dto.userId;
-        reader.address = dto.address;
-        reader.readingCardIds = dto.readingCardIds;
-        reader.borrowRecordIds = dto.borrowRecordIds;
+        reader.address = dto.address ?? null;
+        reader.readingCardIds = dto.readingCardIds ?? [];
+        reader.borrowRecordIds = dto.borrowRecordIds ?? [];
 
-        if (!reader.user) {
-            reader.user = new User();
-            reader.user.userId = dto.userId;
-        }
-        reader.user.username = dto.username;
-        reader.user.gender = dto.gender;
-        reader.user.email = dto.email;
-        reader.user.passwordHash = dto.passwordHash;
-        reader.user.phoneNumber = dto.phoneNumber;
-        reader.user.role = dto.role;
-        reader.user.status = dto.status;
+        reader.user = UserMapper.createFromDto({
+            userId: dto.userId,
+            username: dto.username,
+            gender: dto.gender,
+            email: dto.email,
+            passwordHash: dto.passwordHash,
+            phoneNumber: dto.phoneNumber,
+            role: dto.role,
+            status: dto.status
+        });
 
         return reader;
     }
@@ -39,13 +39,16 @@ export class ReaderMapper {
             reader.user = new User();
             reader.user.userId = dto.userId === undefined ? reader.user.userId : dto.userId;
         }
-        reader.user.username = dto.username === undefined ? reader.user.username : dto.username;
-        reader.user.gender = dto.gender === undefined ? reader.user.gender : dto.gender;
-        reader.user.email = dto.email === undefined ? reader.user.email : dto.email;
-        reader.user.passwordHash = dto.passwordHash === undefined ? reader.user.passwordHash : dto.passwordHash;
-        reader.user.phoneNumber = dto.phoneNumber === undefined ? reader.user.phoneNumber : dto.phoneNumber;
-        reader.user.role = dto.role === undefined ? reader.user.role : dto.role;
-        reader.user.status = dto.status === undefined ? reader.user.status : dto.status;
+        
+        reader.user = UserMapper.updateFromDto(reader.user, {
+            username: dto.username,
+            gender: dto.gender,
+            email: dto.email,
+            passwordHash: dto.passwordHash,
+            phoneNumber: dto.phoneNumber,
+            role: dto.role,
+            status: dto.status
+        });
 
         return reader;
     }

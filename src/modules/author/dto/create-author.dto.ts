@@ -1,18 +1,26 @@
-import { IsString, IsEmail, IsEnum, MinLength, IsOptional, IsArray, IsDate } from 'class-validator';
+import { IsString, IsEmail, IsEnum, MinLength, IsOptional, IsArray, IsDate, IsDefined, IsDateString } from 'class-validator';
+import { IsDateOrNull } from 'src/common/validators/isDateOrNull.validator';
+import { IsDateStringOrNull } from 'src/common/validators/isDateStringOrNull.validator';
+import { IsPresent } from 'src/common/validators/isPresent.validator';
 
 export class CreateAuthorDto {
+    @IsPresent()
     @IsString()
     authorId: string;
 
+    @IsPresent()
     @IsString()
     name: string;
 
-    @IsDate()
-    dateOfBirth: Date;
+    @IsPresent()
+    @IsDateString()
+    dateOfBirth: string;
 
-    @IsDate()
-    dateOfDeath: Date | null;
+    @IsOptional()
+    @IsDateStringOrNull()
+    dateOfDeath: string | null;
 
+    @IsPresent()
     @IsString()
     description: string;
 }
