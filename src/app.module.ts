@@ -1,6 +1,6 @@
 import { AuthorModule } from './modules/author/author.module';
 import { PublisherModule } from './modules/publisher/publisher.module';
-import { CategoryModule } from './modules/category/category.module';
+import { GenreModule } from './modules/genre/genre.module';
 import { ReadingCardController } from './modules/reading-card/reading-card.controller';
 import { ReadingCardModule } from './modules/reading-card/reading-card.module';
 import { ReaderModule } from './modules/reader/reader.module';
@@ -44,7 +44,7 @@ import { BookModule } from './modules/book/book.module';
         UserModule,
         ReadingCardModule,
         BookModule,
-        CategoryModule,
+        GenreModule,
         PublisherModule,
         AuthorModule,
     ],

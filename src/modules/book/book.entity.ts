@@ -18,7 +18,7 @@ export class Book {
     publisherId: string;
 
     @Column({ type: 'varchar', array: true, nullable: false, default: [] })
-    categoryIds: string[];
+    genreIds: string[];
     
     @Column({ type: 'varchar', nullable: false })
     previewUrl: string;

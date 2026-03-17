@@ -13,7 +13,7 @@ export class BookMapper {
         book.authorIds = dto.authorIds;
         book.description = dto.description;
         book.publisherId = dto.publisherId;
-        book.categoryIds = dto.categoryIds;
+        book.genreIds = dto.genreIds;
         book.previewUrl = dto.previewUrl;
 
         return book;
@@ -24,7 +24,7 @@ export class BookMapper {
         book.authorIds = dto.authorIds === undefined ? book.authorIds : dto.authorIds;
         book.description = dto.description === undefined ? book.description : dto.description;
         book.publisherId = dto.publisherId === undefined ? book.publisherId : dto.publisherId;
-        book.categoryIds = dto.categoryIds === undefined ? book.categoryIds : dto.categoryIds;
+        book.genreIds = dto.genreIds === undefined ? book.genreIds : dto.genreIds;
         book.previewUrl = dto.previewUrl === undefined ? book.previewUrl : dto.previewUrl;
 
         return book;

@@ -1,10 +1,10 @@
 import { IsString, IsEmail, IsEnum, MinLength, IsOptional, IsArray, IsDefined } from 'class-validator';
 import { IsPresent } from 'src/common/validators/isPresent.validator';
 
-export class CreateCategoryDto {
+export class CreateGenreDto {
     @IsPresent()
     @IsString()
-    categoryId: string;
+    genreId: string;
 
     @IsPresent()
     @IsString()

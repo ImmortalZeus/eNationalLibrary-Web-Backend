@@ -18,7 +18,7 @@ export class BookPublicDto {
     publisherId: string;
 
     @Expose()
-    categoryIds: string[];
+    genreIds: string[];
 
     @Expose()
     previewUrl: string;

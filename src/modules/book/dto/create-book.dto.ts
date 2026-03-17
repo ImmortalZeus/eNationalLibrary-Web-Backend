@@ -26,7 +26,7 @@ export class CreateBookDto {
     @IsPresent()
     @IsArray()
     @IsString({ each: true })
-    categoryIds: string[];
+    genreIds: string[];
 
     @IsPresent()
     @IsString()

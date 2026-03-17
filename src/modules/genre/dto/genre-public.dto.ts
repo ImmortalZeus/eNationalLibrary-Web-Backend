@@ -1,9 +1,9 @@
 import { Expose } from 'class-transformer';
 import { IsString, IsEmail, IsEnum, MinLength, IsOptional } from 'class-validator';
 
-export class CategoryPublicDto {
+export class GenrePublicDto {
     @Expose()
-    categoryId: string;
+    genreId: string;
 
     @Expose()
     label: string;

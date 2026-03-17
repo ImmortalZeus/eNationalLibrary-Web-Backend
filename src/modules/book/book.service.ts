@@ -123,33 +123,33 @@ export class BookService {
         return this.updateOneByOptions(options, { authorIds: [] });
     }
 
-    async addCategoryId(bookId: string | { bookId: string }, categoryId: string): Promise<BookPublicDto | null> {
+    async addGenreId(bookId: string | { bookId: string }, genreId: string): Promise<BookPublicDto | null> {
         const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
 
         const book = await this.bookRepo.findOne({ where: options });
         if (!book) return null;
 
-        book.categoryIds = [...book.categoryIds, categoryId];
+        book.genreIds = [...book.genreIds, genreId];
         const saved = await this.bookRepo.save(book);
 
         return BookMapper.toBookPublicDto(saved);
     }
 
-    async removeCategoryId(bookId: string | { bookId: string }, categoryId: string): Promise<BookPublicDto | null> {
+    async removeGenreId(bookId: string | { bookId: string }, genreId: string): Promise<BookPublicDto | null> {
         const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
 
         const book = await this.bookRepo.findOne({ where: options });
         if (!book) return null;
 
-        book.categoryIds = book.categoryIds.filter(id => id !== categoryId);
+        book.genreIds = book.genreIds.filter(id => id !== genreId);
         const saved = await this.bookRepo.save(book);
 
         return BookMapper.toBookPublicDto(saved);
     }
 
-    async clearCategoryIds(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
+    async clearGenreIds(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
         const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
 
-        return this.updateOneByOptions(options, { categoryIds: [] });
+        return this.updateOneByOptions(options, { genreIds: [] });
     }
 }

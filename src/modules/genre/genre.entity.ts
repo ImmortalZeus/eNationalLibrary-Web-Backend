@@ -1,9 +1,9 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity({ name: 'categories' })
-export class Category {
+@Entity({ name: 'genres' })
+export class Genre {
     @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
-    categoryId: string;
+    genreId: string;
 
     @Column({ type: 'varchar', nullable: false })
     label: string;
