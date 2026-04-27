@@ -4,10 +4,6 @@ import { IsPresent } from 'src/common/validators/isPresent.validator';
 export class CreateGenreDto {
     @IsPresent()
     @IsString()
-    genreId: string;
-
-    @IsPresent()
-    @IsString()
     label: string;
 
     @IsPresent()

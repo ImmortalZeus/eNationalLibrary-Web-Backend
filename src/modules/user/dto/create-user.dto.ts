@@ -8,10 +8,6 @@ import { IsStringOrNull } from 'src/common/validators/isStringOrNull.validator';
 export class CreateUserDto {
     @IsPresent()
     @IsString()
-    userId: string;
-
-    @IsPresent()
-    @IsString()
     username: string;
 
     @IsPresent()
@@ -29,7 +25,7 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsStringOrNull()
-    phoneNumber: string | null;
+    phoneNumber?: string | null;
 
     @IsPresent()
     @IsEnum(UserRole)

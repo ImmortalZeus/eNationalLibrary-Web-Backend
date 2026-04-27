@@ -6,10 +6,6 @@ import { IsPresent } from 'src/common/validators/isPresent.validator';
 export class CreateReadingCardDto {
     @IsPresent()
     @IsString()
-    readingCardId: string;
-
-    @IsPresent()
-    @IsString()
     label: string;
 
     @IsPresent()
@@ -22,5 +18,9 @@ export class CreateReadingCardDto {
     
     @IsOptional()
     @IsDateStringOrNull()
-    expiryDate: string | null;
+    expiryDate?: string | null;
+
+    @IsOptional()
+    @IsString()
+    readerId: string;
 }

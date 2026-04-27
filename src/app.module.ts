@@ -1,3 +1,4 @@
+import { BorrowRecordModule } from './modules/borrow-record/borrow-record.module';
 import { AuthorModule } from './modules/author/author.module';
 import { PublisherModule } from './modules/publisher/publisher.module';
 import { GenreModule } from './modules/genre/genre.module';
@@ -47,6 +48,7 @@ import { BookModule } from './modules/book/book.module';
         GenreModule,
         PublisherModule,
         AuthorModule,
+        BorrowRecordModule,
     ],
     controllers: [AppController],
     providers: [AppService],

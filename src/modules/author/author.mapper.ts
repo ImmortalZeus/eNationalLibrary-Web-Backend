@@ -3,41 +3,44 @@ import { AuthorPublicDto } from './dto/author-public.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { plainToInstance } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Book } from '../book/book.entity';
+import { In, Repository } from 'typeorm';
+import { BookService } from '../book/book.service';
+import { BadRequestException } from '@nestjs/common';
+import { BookMapper } from '../book/book.mapper';
 
 export class AuthorMapper {
-    static createFromDto(dto: CreateAuthorDto): Author {
+    @InjectRepository(Book)
+    private static readonly bookService: BookService;
+    
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async createFromDto(dto: CreateAuthorDto): Promise<Author> {
         const author = new Author();
 
-        author.authorId = dto.authorId;
         author.name = dto.name;
-
-        const tmpDateOfBirth = dto.dateOfBirth;
-        author.dateOfBirth = new Date(tmpDateOfBirth);
-
-        const tmpDateOfDeath = dto.dateOfDeath;
-        author.dateOfDeath = tmpDateOfDeath ? new Date(tmpDateOfDeath) : null;
-
+        author.dateOfBirth = new Date(dto.dateOfBirth);
+        author.dateOfDeath = dto.dateOfDeath == null ? null : (!dto.dateOfDeath ? null : new Date(dto.dateOfDeath));
         author.description = dto.description;
 
         return author;
     }
 
-    static updateFromDto(author: Author, dto: UpdateAuthorDto): Author {
-        author.name = dto.name === undefined ? author.name : dto.name;
-
-        const tmpDateOfBirth = dto.dateOfBirth === undefined ? author.dateOfBirth : dto.dateOfBirth;
-        author.dateOfBirth = new Date(tmpDateOfBirth);
-
-        const tmpDateOfDeath = dto.dateOfDeath === undefined ? author.dateOfDeath : dto.dateOfDeath;
-        author.dateOfDeath = tmpDateOfDeath ? new Date(tmpDateOfDeath) : null;
-        
-        author.description = dto.description === undefined ? author.description : dto.description;
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async updateFromDto(author: Author, dto: UpdateAuthorDto): Promise<Author> {
+        author.name = dto.name ? dto.name : author.name;
+        author.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : author.dateOfBirth;
+        author.dateOfDeath = dto.dateOfDeath == null ? null : (!dto.dateOfDeath ? author.dateOfDeath : new Date(dto.dateOfDeath));
+        author.description = dto.description ? dto.description : author.description;
 
         return author;
     }
-
+    
     static toAuthorPublicDto(author: Author): AuthorPublicDto {
-        return plainToInstance(AuthorPublicDto, { ...author }, {
+        return plainToInstance(AuthorPublicDto, {
+                ...author,
+                books: author.books ? author.books.map(b => BookMapper.toBookPublicDto(b)) : undefined
+            }, {
             excludeExtraneousValues: true,
         });
     }

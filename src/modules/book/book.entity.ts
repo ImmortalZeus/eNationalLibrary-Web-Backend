@@ -1,25 +1,40 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToMany, OneToOne, ManyToOne, JoinTable, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Reader } from '../reader/reader.entity';
+import { Author } from '../author/author.entity';
+import { Publisher } from '../publisher/publisher.entity';
+import { Genre } from '../genre/genre.entity';
+import { BorrowRecord } from '../borrow-record/borrow-record.entity';
 
 @Entity({ name: 'books' })
 export class Book {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     bookId: string;
 
     @Column({ type: 'varchar', nullable: false })
     title: string;
 
-    @Column({ type: 'varchar', array: true, nullable: false, default: [] })
-    authorIds: string[];
-
     @Column({ type: 'varchar', nullable: false })
     description: string;
     
     @Column({ type: 'varchar', nullable: false })
-    publisherId: string;
-
-    @Column({ type: 'varchar', array: true, nullable: false, default: [] })
-    genreIds: string[];
-    
-    @Column({ type: 'varchar', nullable: false })
     previewUrl: string;
+
+    @ManyToMany(() => Author, author => author.books, { eager: false })
+    @JoinTable()
+    authors: Author[];
+
+    @ManyToMany(() => Publisher, publisher => publisher.books, { eager: false })
+    @JoinTable()
+    publishers: Publisher[];
+
+    @ManyToMany(() => Genre, genre => genre.books, { eager: false })
+    @JoinTable()
+    genres: Genre[];
+
+    @ManyToMany(() => Reader, reader => reader.waitingBooks, { eager: false })
+    @JoinTable()
+    waitingReaders: Reader[];
+
+    @OneToMany(() => BorrowRecord, borrowRecord => borrowRecord.book, { eager: false })
+    borrowRecords: BorrowRecord[];
 }

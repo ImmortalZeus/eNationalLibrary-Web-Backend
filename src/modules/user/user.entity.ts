@@ -1,11 +1,11 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { UserGender } from 'src/common/enums/user/userGender.enum';
 import { UserRole } from 'src/common/enums/user/userRole.enum';
 import { UserStatus } from 'src/common/enums/user/userStatus.enum';
 
 @Entity({ name: 'users' })
 export class User {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     userId: string;
 
     @Column({ type: 'varchar', nullable: false })

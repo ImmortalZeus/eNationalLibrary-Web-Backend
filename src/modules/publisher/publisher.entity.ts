@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToMany, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
+import { Book } from '../book/book.entity';
 
 @Entity({ name: 'publishers' })
 export class Publisher {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     publisherId: string;
 
     @Column({ type: 'varchar', nullable: false })
@@ -10,4 +11,7 @@ export class Publisher {
 
     @Column({ type: 'varchar', nullable: false })
     description: string;
+
+    @ManyToMany(() => Book, book => book.publishers, { eager: false })
+    books: Book[];
 }

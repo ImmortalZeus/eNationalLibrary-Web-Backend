@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Book } from '../book/book.entity';
 
 @Entity({ name: 'genres' })
 export class Genre {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     genreId: string;
 
     @Column({ type: 'varchar', nullable: false })
@@ -10,4 +11,7 @@ export class Genre {
 
     @Column({ type: 'varchar', nullable: false })
     description: string;
+
+    @ManyToMany(() => Book, book => book.genres, { eager: false })
+    books: Book[];
 }

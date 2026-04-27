@@ -6,21 +6,17 @@ import { IsPresent } from 'src/common/validators/isPresent.validator';
 export class CreateAuthorDto {
     @IsPresent()
     @IsString()
-    authorId: string;
-
-    @IsPresent()
-    @IsString()
     name: string;
 
-    @IsPresent()
+    @IsOptional()
     @IsDateString()
     dateOfBirth: string;
 
     @IsOptional()
     @IsDateStringOrNull()
-    dateOfDeath: string | null;
+    dateOfDeath?: string | null;
 
-    @IsPresent()
+    @IsOptional()
     @IsString()
     description: string;
 }

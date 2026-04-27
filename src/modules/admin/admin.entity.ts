@@ -1,12 +1,12 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../user/user.entity';
 
 @Entity({ name: 'admins' })
 export class Admin {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     userId: string;
 
-    @OneToOne(() => User, { eager: true })
-    @JoinColumn({ name: 'userId' })
+    @OneToOne(() => User, { eager: false })
+    @JoinColumn()
     user: User;
 }

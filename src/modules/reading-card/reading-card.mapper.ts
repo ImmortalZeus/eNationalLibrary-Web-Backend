@@ -4,39 +4,36 @@ import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { CreateReadingCardDto } from './dto/create-reading-card.dto';
 import { plainToInstance } from 'class-transformer';
 import { ReadingCardConfig } from 'src/common/configs/readingCard.config';
+import { ReaderMapper } from '../reader/reader.mapper';
 
 export class ReadingCardMapper {
-    static createFromDto(dto: CreateReadingCardDto): ReadingCard {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async createFromDto(dto: CreateReadingCardDto): Promise<ReadingCard> {
         const readingCard = new ReadingCard();
 
-        readingCard.readingCardId = dto.readingCardId;
         readingCard.label = dto.label;
         readingCard.type = dto.type;
-
-        const tmpActivationDate = dto.activationDate;
-        readingCard.activationDate = new Date(tmpActivationDate);
-
-        const tmpExpiryDate = dto.expiryDate;
-        readingCard.expiryDate = tmpExpiryDate ? new Date(tmpExpiryDate) : new Date(readingCard.activationDate.getTime() + ReadingCardConfig[readingCard.type].cardValidityDays * 24 * 60 * 60 * 1000);
+        readingCard.activationDate = new Date(dto.activationDate);
+        readingCard.expiryDate = dto.expiryDate ? new Date(dto.expiryDate) : new Date(readingCard.activationDate.getTime() + ReadingCardConfig[readingCard.type].cardValidityDays * 24 * 60 * 60 * 1000);
         
         return readingCard;
     }
 
-    static updateFromDto(readingCard: ReadingCard, dto: UpdateReadingCardDto): ReadingCard {
-        readingCard.label = dto.label === undefined ? readingCard.label : dto.label;;
-        readingCard.type = dto.type === undefined ? readingCard.type : dto.type;
-        
-        const tmpActivationDate = dto.activationDate === undefined ? readingCard.activationDate : dto.activationDate;
-        readingCard.activationDate = new Date(tmpActivationDate);
-
-        const tmpExpiryDate = dto.expiryDate === undefined ? readingCard.expiryDate : dto.expiryDate;
-        readingCard.expiryDate = tmpExpiryDate ? new Date(tmpExpiryDate) : new Date(readingCard.activationDate.getTime() + ReadingCardConfig[readingCard.type].cardValidityDays * 24 * 60 * 60 * 1000);
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async updateFromDto(readingCard: ReadingCard, dto: UpdateReadingCardDto): Promise<ReadingCard> {
+        readingCard.label = dto.label ? dto.label : readingCard.label;
+        readingCard.type = dto.type ? dto.type : readingCard.type;
+        readingCard.activationDate = dto.activationDate ? new Date(dto.activationDate) : readingCard.activationDate;
+        readingCard.expiryDate = dto.expiryDate ? new Date(dto.expiryDate) : (!dto.activationDate ? readingCard.expiryDate : new Date(readingCard.activationDate.getTime() + ReadingCardConfig[readingCard.type].cardValidityDays * 24 * 60 * 60 * 1000));
 
         return readingCard;
     }
 
     static toReadingCardPublicDto(readingCard: ReadingCard): ReadingCardPublicDto {
-        return plainToInstance(ReadingCardPublicDto, { ...readingCard }, {
+        return plainToInstance(ReadingCardPublicDto, {
+                ...readingCard,
+                reader: readingCard.reader ? ReaderMapper.toReaderPublicDto(readingCard.reader) : undefined
+            }, {
             excludeExtraneousValues: true,
         });
     }

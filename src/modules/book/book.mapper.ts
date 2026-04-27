@@ -3,35 +3,38 @@ import { BookPublicDto } from './dto/book-public.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { plainToInstance } from 'class-transformer';
+import { AuthorMapper } from '../author/author.mapper';
+import { PublisherMapper } from '../publisher/publisher.mapper';
+import { GenreMapper } from '../genre/genre.mapper';
 
 export class BookMapper {
-    static createFromDto(dto: CreateBookDto): Book {
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async createFromDto(dto: CreateBookDto): Promise<Book> {
         const book = new Book();
 
-        book.bookId = dto.bookId;
         book.title = dto.title;
-        book.authorIds = dto.authorIds;
         book.description = dto.description;
-        book.publisherId = dto.publisherId;
-        book.genreIds = dto.genreIds;
         book.previewUrl = dto.previewUrl;
 
         return book;
     }
 
-    static updateFromDto(book: Book, dto: UpdateBookDto): Book {
-        book.title = dto.title === undefined ? book.title : dto.title;
-        book.authorIds = dto.authorIds === undefined ? book.authorIds : dto.authorIds;
-        book.description = dto.description === undefined ? book.description : dto.description;
-        book.publisherId = dto.publisherId === undefined ? book.publisherId : dto.publisherId;
-        book.genreIds = dto.genreIds === undefined ? book.genreIds : dto.genreIds;
-        book.previewUrl = dto.previewUrl === undefined ? book.previewUrl : dto.previewUrl;
+    // eslint-disable-next-line @typescript-eslint/require-await
+    static async updateFromDto(book: Book, dto: UpdateBookDto): Promise<Book> {
+        book.title = dto.title ? dto.title : book.title;
+        book.description = dto.description ? dto.description : book.description;
+        book.previewUrl = dto.previewUrl ? dto.previewUrl : book.previewUrl;
 
         return book;
     }
 
     static toBookPublicDto(book: Book): BookPublicDto {
-        return plainToInstance(BookPublicDto, { ...book }, {
+        return plainToInstance(BookPublicDto, {
+                ...book,
+                authors: book.authors ? book.authors.map(a => AuthorMapper.toAuthorPublicDto(a)) : undefined,
+                publishers: book.publishers ? book.publishers.map(p => PublisherMapper.toPublisherPublicDto(p)) : undefined,
+                genres: book.genres ? book.genres.map(g => GenreMapper.toGenrePublicDto(g)) : undefined
+            }, {
             excludeExtraneousValues: true,
         });
     }

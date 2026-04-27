@@ -7,149 +7,429 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { BookMapper } from './book.mapper';
+import { AuthorService } from '../author/author.service';
+import { PublisherService } from '../publisher/publisher.service';
+import { GenreService } from '../genre/genre.service';
 
 @Injectable()
 export class BookService {
     constructor(
         @InjectRepository(Book)
         private readonly bookRepo: Repository<Book>,
+        private readonly authorService: AuthorService,
+        private readonly publisherService: PublisherService,
+        private readonly genreService: GenreService
     ) {}
 
-    async create(dto: CreateBookDto): Promise<BookPublicDto> {
-        const existing = await this.bookRepo.findOneBy({ bookId: dto.bookId });
-        if (existing) {
-            throw new ConflictException('bookId already exists');
+    async create(dto: CreateBookDto): Promise<Book> {
+        const book = await BookMapper.createFromDto(dto);
+
+        book.authors = [];
+
+        if(dto.authorIds) {
+            for(const authorId of dto.authorIds) {
+                const author = await this.authorService.findOneById(authorId, []);
+                if(author) {
+                    book.authors.push(author)
+                }
+            }
+        }
+        if(dto.newAuthors) {
+            for(const newAuthor of dto.newAuthors) {
+                const author = await this.authorService.create(newAuthor);
+                book.authors.push(author);
+            }
         }
 
-        const book = BookMapper.createFromDto(dto);
+        book.publishers = [];
 
-        const saved = await this.bookRepo.save(book);
+        if(dto.publisherIds) {
+            for(const publisherId of dto.publisherIds) {
+                const publisher = await this.publisherService.findOneById(publisherId, []);
+                if(publisher) {
+                    book.publishers.push(publisher)
+                }
+            }
+        }
+        if(dto.newPublishers) {
+            for(const newPublisher of dto.newPublishers) {
+                const publisher = await this.publisherService.create(newPublisher);
+                book.publishers.push(publisher)
+            }
+        }
 
-        return BookMapper.toBookPublicDto(saved);
+        book.genres = [];
+
+        if(dto.genreIds) {
+            for(const genreId of dto.genreIds) {
+                const genre = await this.genreService.findOneById(genreId, []);
+                if(genre) {
+                    book.genres.push(genre)
+                }
+            }
+        }
+        if(dto.newGenres) {
+            for(const newGenre of dto.newGenres) {
+                const genre = await this.genreService.create(newGenre);
+                book.genres.push(genre)
+            }
+        }
+
+        const saved = await this.save(book);
+
+        return saved;
     }
 
-    async findOneById(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
-        return this.findOneByOptions(options);
+    async findOneById(bookId: string | { bookId: string }, relations: string[]): Promise<Book | null> {
+        const options = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        return this.findOneByOptions(options, relations);
     }
 
-    async findOneByOptions(options: FindOptionsWhere<Book>): Promise<BookPublicDto | null> {
-        const book = await this.bookRepo.findOne({ where: options });
+    async findOneByOptions(options: FindOptionsWhere<Book>, relations: string[]): Promise<Book | null> {
+        const book = await this.bookRepo.findOne({ where: options, relations: relations });
         if(!book) return null;
-        return BookMapper.toBookPublicDto(book);
+        return book;
     }
 
-    async findManyByOptions(options: FindOptionsWhere<Book>): Promise<BookPublicDto[]> {
-        const books = await this.bookRepo.find({ where: options });
-        return books.map(book => BookMapper.toBookPublicDto(book));
+    async findManyByOptions(options: FindOptionsWhere<Book>, relations: string[]): Promise<Book[]> {
+        const books = await this.bookRepo.find({ where: options, relations: relations });
+        return books;
     }
 
-    async findAll(): Promise<BookPublicDto[]> {
-        return this.findManyByOptions({});
+    async findAll(relations: string[]): Promise<Book[]> {
+        return this.findManyByOptions({}, relations);
     }
 
-    async updateOneById(bookId: string | { bookId: string }, dto: UpdateBookDto): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
+    async updateOneById(bookId: string | { bookId: string }, dto: UpdateBookDto): Promise<boolean> {
+        const options = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
         return this.updateOneByOptions(options, dto);
     }
 
-    async updateOneByOptions(options: FindOptionsWhere<Book>, dto: UpdateBookDto): Promise<BookPublicDto | null> {
-        const book = await this.bookRepo.findOne({ where: options });
-        if(!book) return null;
+    async updateOneByOptions(options: FindOptionsWhere<Book>, dto: UpdateBookDto): Promise<boolean> {
+        // const relations: string[] = [];
+        // if(dto.authorIds || dto.newAuthors) {
+        //     relations.push('authors')
+        // }
 
-        BookMapper.updateFromDto(book, dto);
+        // if(dto.publisherIds || dto.newPublishers) {
+        //     relations.push('publishers')
+        // }
 
-        const saved = await this.bookRepo.save(book);
+        // if(dto.genreIds || dto.newGenres) {
+        //     relations.push('genres')
+        // }
 
-        return BookMapper.toBookPublicDto(saved);
-    }
+        // const book = await this.findOneByOptions(options, relations);
+        const book = await this.findOneByOptions(options, []);
+        if(!book) return false;
 
-    async updateManyByOptions(options: FindOptionsWhere<Book>, dto: UpdateBookDto): Promise<BookPublicDto[]> {
-        const books = await this.bookRepo.find({ where: options });
+        await BookMapper.updateFromDto(book, dto);
 
-        for (const book of books) {
-            BookMapper.updateFromDto(book, dto);
-            await this.bookRepo.save(book);
+        if(dto.authorIds || dto.newAuthors) {
+            book.authors = [];
         }
 
-        return books.map(book => BookMapper.toBookPublicDto(book));
+        if(dto.authorIds) {
+            for(const authorId of dto.authorIds) {
+                const author = await this.authorService.findOneById(authorId, []);
+                if(author) {
+                    book.authors.push(author)
+                }
+            }
+        }
+        if(dto.newAuthors) {
+            for(const newAuthor of dto.newAuthors) {
+                const author = await this.authorService.create(newAuthor);
+                book.authors.push(author);
+            }
+        }
+
+        if(dto.publisherIds || dto.newPublishers) {
+            book.publishers = [];
+        }
+
+        if(dto.publisherIds) {
+            for(const publisherId of dto.publisherIds) {
+                const publisher = await this.publisherService.findOneById(publisherId, []);
+                if(publisher) {
+                    book.publishers.push(publisher)
+                }
+            }
+        }
+        if(dto.newPublishers) {
+            for(const newPublisher of dto.newPublishers) {
+                const publisher = await this.publisherService.create(newPublisher);
+                book.publishers.push(publisher)
+            }
+        }
+
+        if(dto.genreIds || dto.newGenres) {
+            book.genres = [];
+        }
+
+        if(dto.genreIds) {
+            for(const genreId of dto.genreIds) {
+                const genre = await this.genreService.findOneById(genreId, []);
+                if(genre) {
+                    book.genres.push(genre)
+                }
+            }
+        }
+        if(dto.newGenres) {
+            for(const newGenre of dto.newGenres) {
+                const genre = await this.genreService.create(newGenre);
+                book.genres.push(genre)
+            }
+        }
+
+        const saved = await this.save(book);
+
+        return true;
     }
 
-    async removeOneById(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
+    async updateManyByOptions(options: FindOptionsWhere<Book>, dto: UpdateBookDto): Promise<boolean> {
+        const books = await this.findManyByOptions(options, []);
+
+        for (const book of books) {
+            await BookMapper.updateFromDto(book, dto);
+
+            if(dto.authorIds || dto.newAuthors) {
+                book.authors = [];
+            }
+
+            if(dto.authorIds) {
+                for(const authorId of dto.authorIds) {
+                    const author = await this.authorService.findOneById(authorId, []);
+                    if(author) {
+                        book.authors.push(author)
+                    }
+                }
+            }
+            if(dto.newAuthors) {
+                for(const newAuthor of dto.newAuthors) {
+                    const author = await this.authorService.create(newAuthor);
+                    book.authors.push(author);
+                }
+            }
+
+            if(dto.publisherIds || dto.newPublishers) {
+                book.publishers = [];
+            }
+
+            if(dto.publisherIds) {
+                for(const publisherId of dto.publisherIds) {
+                    const publisher = await this.publisherService.findOneById(publisherId, []);
+                    if(publisher) {
+                        book.publishers.push(publisher)
+                    }
+                }
+            }
+            if(dto.newPublishers) {
+                for(const newPublisher of dto.newPublishers) {
+                    const publisher = await this.publisherService.create(newPublisher);
+                    book.publishers.push(publisher)
+                }
+            }
+
+            if(dto.genreIds || dto.newGenres) {
+                book.genres = [];
+            }
+
+            if(dto.genreIds) {
+                for(const genreId of dto.genreIds) {
+                    const genre = await this.genreService.findOneById(genreId, []);
+                    if(genre) {
+                        book.genres.push(genre)
+                    }
+                }
+            }
+            if(dto.newGenres) {
+                for(const newGenre of dto.newGenres) {
+                    const genre = await this.genreService.create(newGenre);
+                    book.genres.push(genre)
+                }
+            }
+
+            await this.save(book);
+        }
+
+        return true;
+    }
+
+    async removeOneById(bookId: string | { bookId: string }): Promise<boolean> {
+        const options = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
         return this.removeOneByOptions(options);
     }
 
-    async removeOneByOptions(options: FindOptionsWhere<Book>): Promise<BookPublicDto | null> {
-        const book = await this.bookRepo.findOne({ where: options });
-        if (!book) return null;
-        await this.bookRepo.remove(book);
-        return BookMapper.toBookPublicDto(book);
+    async removeOneByOptions(options: FindOptionsWhere<Book>): Promise<boolean> {
+        const book = await this.findOneByOptions(options, []);
+        if (!book) return false;
+        await this.remove(book);
+        return true;
     }
 
-    async removeManyByOptions(options: FindOptionsWhere<Book>): Promise<BookPublicDto[]> {
-        const books = await this.bookRepo.find({ where: options });
-        await this.bookRepo.remove(books);
-        return books.map(book => BookMapper.toBookPublicDto(book));
+    async removeManyByOptions(options: FindOptionsWhere<Book>): Promise<boolean> {
+        const books = await this.findManyByOptions(options, []);
+        await this.removeMany(books);
+        return true;
     }
 
-    async addAuthorId(bookId: string | { bookId: string }, authorId: string): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
-
-        const book = await this.bookRepo.findOne({ where: options });
-        if (!book) return null;
-
-        book.authorIds = [...book.authorIds, authorId];
-        const saved = await this.bookRepo.save(book);
-
-        return BookMapper.toBookPublicDto(saved);
+    async save(book: Book): Promise<Book> {
+        return await this.bookRepo.save(book);
     }
 
-    async removeAuthorId(bookId: string | { bookId: string }, authorId: string): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
-
-        const book = await this.bookRepo.findOne({ where: options });
-        if (!book) return null;
-
-        book.authorIds = book.authorIds.filter(id => id !== authorId);
-        const saved = await this.bookRepo.save(book);
-
-        return BookMapper.toBookPublicDto(saved);
+    async remove(book: Book): Promise<Book> {
+        return await this.bookRepo.remove(book);
     }
 
-    async clearAuthorIds(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
-
-        return this.updateOneByOptions(options, { authorIds: [] });
+    async removeMany(books: Book[]): Promise<Book[]> {
+        return await this.bookRepo.remove(books);
     }
 
-    async addGenreId(bookId: string | { bookId: string }, genreId: string): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
+    async addAuthor(bookId: string | { bookId: string }, authorId: string | { authorId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const authorOptions = typeof authorId === "string" ? { authorId: authorId } : { authorId: authorId.authorId };
 
-        const book = await this.bookRepo.findOne({ where: options });
-        if (!book) return null;
+        const book = await this.findOneByOptions(bookOptions, ['authors']);
+        if (!book) return false;
 
-        book.genreIds = [...book.genreIds, genreId];
-        const saved = await this.bookRepo.save(book);
+        const author = await this.authorService.findOneByOptions(authorOptions, []);
+        if(!author) return false;
 
-        return BookMapper.toBookPublicDto(saved);
+        if(!(book.authors.find(a => a.authorId === author.authorId)))
+        {
+            book.authors.push(author);
+            const saved = await this.save(book);
+        }
+
+        return true;
     }
 
-    async removeGenreId(bookId: string | { bookId: string }, genreId: string): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
+    async removeAuthor(bookId: string | { bookId: string }, authorId: string | { authorId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const authorOptions = typeof authorId === "string" ? { authorId: authorId } : { authorId: authorId.authorId };
 
-        const book = await this.bookRepo.findOne({ where: options });
-        if (!book) return null;
+        const book = await this.findOneByOptions(bookOptions, ['authors']);
+        if (!book) return false;
 
-        book.genreIds = book.genreIds.filter(id => id !== genreId);
-        const saved = await this.bookRepo.save(book);
+        const indexToRemove = book.authors.findIndex(item => item.authorId === authorOptions.authorId);
+        if (indexToRemove !== -1) {
+            book.authors.splice(indexToRemove, 1);
+        }
 
-        return BookMapper.toBookPublicDto(saved);
+        const saved = await this.save(book);
+
+        return true;
     }
 
-    async clearGenreIds(bookId: string | { bookId: string }): Promise<BookPublicDto | null> {
-        const options = typeof bookId === "string" ? { bookId: bookId } : bookId;
+    async clearAuthors(bookId: string | { bookId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
 
-        return this.updateOneByOptions(options, { genreIds: [] });
+        const book = await this.findOneByOptions(bookOptions, ['authors']);
+        if (!book) return false;
+
+        book.authors = [];
+
+        const saved = await this.save(book);
+
+        return true;
+    }
+
+    async addPublisher(bookId: string | { bookId: string }, publisherId: string | { publisherId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const publisherOptions = typeof publisherId === "string" ? { publisherId: publisherId } : { publisherId: publisherId.publisherId };
+
+        const book = await this.findOneByOptions(bookOptions, ['publishers']);
+        if (!book) return false;
+
+        const publisher = await this.publisherService.findOneByOptions(publisherOptions, []);
+        if(!publisher) return false;
+
+        if(!(book.publishers.find(a => a.publisherId === publisher.publisherId)))
+        {
+            book.publishers.push(publisher);
+            const saved = await this.save(book);
+        }
+
+        return true;
+    }
+
+    async removePublisher(bookId: string | { bookId: string }, publisherId: string | { publisherId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const publisherOptions = typeof publisherId === "string" ? { publisherId: publisherId } : { publisherId: publisherId.publisherId };
+
+        const book = await this.findOneByOptions(bookOptions, ['publishers']);
+        if (!book) return false;
+
+        const indexToRemove = book.publishers.findIndex(item => item.publisherId === publisherOptions.publisherId);
+        if (indexToRemove !== -1) {
+            book.publishers.splice(indexToRemove, 1);
+        }
+
+        const saved = await this.save(book);
+
+        return true;
+    }
+
+    async clearPublishers(bookId: string | { bookId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+
+        const book = await this.findOneByOptions(bookOptions, ['publishers']);
+        if (!book) return false;
+
+        book.publishers = [];
+
+        const saved = await this.save(book);
+
+        return true;
+    }
+
+    async addGenre(bookId: string | { bookId: string }, genreId: string | { genreId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const genreOptions = typeof genreId === "string" ? { genreId: genreId } : { genreId: genreId.genreId };
+
+        const book = await this.findOneByOptions(bookOptions, ['genres']);
+        if (!book) return false;
+
+        const genre = await this.genreService.findOneByOptions(genreOptions, []);
+        if(!genre) return false;
+
+        if(!(book.genres.find(a => a.genreId === genre.genreId)))
+        {
+            book.genres.push(genre);
+            const saved = await this.save(book);
+        }
+
+        return true;
+    }
+
+    async removeGenre(bookId: string | { bookId: string }, genreId: string | { genreId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+        const genreOptions = typeof genreId === "string" ? { genreId: genreId } : { genreId: genreId.genreId };
+
+        const book = await this.findOneByOptions(bookOptions, ['genres']);
+        if (!book) return false;
+
+        const indexToRemove = book.genres.findIndex(item => item.genreId === genreOptions.genreId);
+        if (indexToRemove !== -1) {
+            book.genres.splice(indexToRemove, 1);
+        }
+
+        const saved = await this.save(book);
+
+        return true;
+    }
+
+    async clearGenres(bookId: string | { bookId: string }): Promise<boolean> {
+        const bookOptions = typeof bookId === "string" ? { bookId: bookId } : { bookId: bookId.bookId };
+
+        const book = await this.findOneByOptions(bookOptions, ['genres']);
+        if (!book) return false;
+
+        book.genres = [];
+
+        const saved = await this.save(book);
+
+        return true;
     }
 }

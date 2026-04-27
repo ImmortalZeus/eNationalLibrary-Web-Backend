@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { ReadingCard } from './reading-card.entity';
@@ -7,89 +7,137 @@ import { CreateReadingCardDto } from './dto/create-reading-card.dto';
 import { plainToInstance } from 'class-transformer';
 import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { ReadingCardMapper } from './reading-card.mapper';
+import { ReaderService } from '../reader/reader.service';
 
 @Injectable()
 export class ReadingCardService {
     constructor(
         @InjectRepository(ReadingCard)
         private readonly readingCardRepo: Repository<ReadingCard>,
+        private readonly readerService: ReaderService,
+
     ) {}
 
-    async create(dto: CreateReadingCardDto): Promise<ReadingCardPublicDto> {
-        const existing = await this.readingCardRepo.findOneBy({ readingCardId: dto.readingCardId });
-        if (existing) {
-            throw new ConflictException('readingCardId already exists');
+    async create(dto: CreateReadingCardDto): Promise<ReadingCard> {        
+        const readingCard = await ReadingCardMapper.createFromDto(dto);
+
+        if(dto.readerId) {
+            const reader = await this.readerService.findOneById(dto.readerId, []);
+            if(reader) {
+                readingCard.reader = reader;
+            } else {
+                throw new NotFoundException(`Reader with id ${dto.readerId} not found`);
+            }
         }
         
-        const readingCard = ReadingCardMapper.createFromDto(dto);
+        const saved = await this.save(readingCard);
         
-        const saved = await this.readingCardRepo.save(readingCard);
-        
-        return ReadingCardMapper.toReadingCardPublicDto(saved);
+        return saved;
     }
 
-    async findOneById(readingCardId: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
-        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
-        return this.findOneByOptions(options);
+    async findOneById(readingCardId: string | { readingCardId: string }, relations: string[]): Promise<ReadingCard | null> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : { readingCardId: readingCardId.readingCardId };
+        return this.findOneByOptions(options, relations);
     }
 
-    async findOneByOptions(options: FindOptionsWhere<ReadingCard>): Promise<ReadingCardPublicDto | null> {
-        const readingCard = await this.readingCardRepo.findOne({ where: options });
+    async findOneByOptions(options: FindOptionsWhere<ReadingCard>, relations: string[]): Promise<ReadingCard | null> {
+        const readingCard = await this.readingCardRepo.findOne({ where: options, relations: relations });
         if(!readingCard) return null;
-        return ReadingCardMapper.toReadingCardPublicDto(readingCard);
+        return readingCard;
     }
 
-    async findManyByOptions(options: FindOptionsWhere<ReadingCard>): Promise<ReadingCardPublicDto[]> {
-        const readingCards = await this.readingCardRepo.find({ where: options });
-        return readingCards.map(readingCard => ReadingCardMapper.toReadingCardPublicDto(readingCard));
+    async findManyByOptions(options: FindOptionsWhere<ReadingCard>, relations: string[]): Promise<ReadingCard[]> {
+        const readingCards = await this.readingCardRepo.find({ where: options, relations: relations });
+        return readingCards;
     }
 
-    async findAll(): Promise<ReadingCardPublicDto[]> {
-        return this.findManyByOptions({});
+    async findAll(relations: string[]): Promise<ReadingCard[]> {
+        return this.findManyByOptions({}, relations);
     }
 
-    async updateOneById(readingCardId: string | { readingCardId: string }, dto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
-        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
+    async updateOneById(readingCardId: string | { readingCardId: string }, dto: UpdateReadingCardDto): Promise<boolean> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : { readingCardId: readingCardId.readingCardId };
         return this.updateOneByOptions(options, dto);
     }
 
-    async updateOneByOptions(options: FindOptionsWhere<ReadingCard>, dto: UpdateReadingCardDto): Promise<ReadingCardPublicDto | null> {
-        const readingCard = await this.readingCardRepo.findOne({ where: options });
-        if(!readingCard) return null;
+    async updateOneByOptions(options: FindOptionsWhere<ReadingCard>, dto: UpdateReadingCardDto): Promise<boolean> {
+        const readingCard = await this.findOneByOptions(options, []);
+        if(!readingCard) return false;
 
-        ReadingCardMapper.updateFromDto(readingCard, dto);
-        
-        const saved = await this.readingCardRepo.save(readingCard);
+        await ReadingCardMapper.updateFromDto(readingCard, dto);
 
-        return ReadingCardMapper.toReadingCardPublicDto(saved);
+        const saved = await this.save(readingCard);
+
+        return true;
     }
 
-    async updateManyByOptions(options: FindOptionsWhere<ReadingCard>, dto: UpdateReadingCardDto): Promise<ReadingCardPublicDto[]> {
-        const readingCards = await this.readingCardRepo.find({ where: options });
+    async updateManyByOptions(options: FindOptionsWhere<ReadingCard>, dto: UpdateReadingCardDto): Promise<boolean> {
+        const readingCards = await this.findManyByOptions(options, []);
         
         for (const readingCard of readingCards) {
-            ReadingCardMapper.updateFromDto(readingCard, dto);
-            await this.readingCardRepo.save(readingCard);
+            await ReadingCardMapper.updateFromDto(readingCard, dto);
+            await this.save(readingCard);
         }
 
-        return readingCards.map(readingCard => ReadingCardMapper.toReadingCardPublicDto(readingCard));
+        return true
     }
 
-    async removeOneById(readingCardId: string | { readingCardId: string }): Promise<ReadingCardPublicDto | null> {
-        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : readingCardId;
+    async removeOneById(readingCardId: string | { readingCardId: string }): Promise<boolean> {
+        const options = typeof readingCardId === "string" ? { readingCardId: readingCardId } : { readingCardId: readingCardId.readingCardId };
         return this.removeOneByOptions(options);
     }
 
-    async removeOneByOptions(options: FindOptionsWhere<ReadingCard>): Promise<ReadingCardPublicDto | null> {
-        const readingCard = await this.readingCardRepo.findOne({ where: options });
-        if (!readingCard) return null;
-        await this.readingCardRepo.remove(readingCard);
-        return ReadingCardMapper.toReadingCardPublicDto(readingCard);
+    async removeOneByOptions(options: FindOptionsWhere<ReadingCard>): Promise<boolean> {
+        const readingCard = await this.findOneByOptions(options, []);
+        if (!readingCard) return false;
+        await this.remove(readingCard);
+        return true;
     }
 
-    async removeManyByOptions(options: FindOptionsWhere<ReadingCard>): Promise<ReadingCardPublicDto[]> {
-        const readingCards = await this.readingCardRepo.find({ where: options });
-        await this.readingCardRepo.remove(readingCards);
-        return readingCards.map(readingCard => ReadingCardMapper.toReadingCardPublicDto(readingCard));
+    async removeManyByOptions(options: FindOptionsWhere<ReadingCard>): Promise<boolean> {
+        const readingCards = await this.findManyByOptions(options, []);
+        await this.removeMany(readingCards);
+        return true;
+    }
+
+    async save(readingCard: ReadingCard): Promise<ReadingCard> {
+        return await this.readingCardRepo.save(readingCard);
+    }
+
+    async remove(readingCard: ReadingCard): Promise<ReadingCard> {
+        return await this.readingCardRepo.remove(readingCard);
+    }
+
+    async removeMany(readingCards: ReadingCard[]): Promise<ReadingCard[]> {
+        return await this.readingCardRepo.remove(readingCards);
+    }
+
+    async addReadingCardReader(readingCardId: string | { readingCardId: string }, relations: string[], userId: string | { userId: string }): Promise<ReadingCard | null> {
+        const readingCardOptions = typeof readingCardId === "string" ? { readingCardId: readingCardId } : { readingCardId: readingCardId.readingCardId };
+        const readerOptions = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
+        
+        const readingCard = await this.findOneByOptions(readingCardOptions, []);
+        if (!readingCard) return null;
+
+        const reader = await this.readerService.findOneByOptions(readerOptions, []);
+        if(!reader) return null;
+        readingCard.reader = reader;
+            
+        await this.save(readingCard);
+
+        return await this.findOneByOptions(readingCardOptions, relations);
+    }
+
+    async removeReadingCardReader(readingCardId: string | { readingCardId: string }, relations: string[]): Promise<ReadingCard | null> {
+        const readingCardOptions = typeof readingCardId === "string" ? { readingCardId: readingCardId } : { readingCardId: readingCardId.readingCardId };
+        
+        const readingCard = await this.findOneByOptions(readingCardOptions, []);
+        if (!readingCard) return null;
+
+        readingCard.reader = null;
+
+        await this.save(readingCard);
+
+        return await this.findOneByOptions(readingCardOptions, relations);
     }
 }

@@ -1,21 +1,27 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../user/user.entity';
+import { ReadingCard } from '../reading-card/reading-card.entity';
+import { BorrowRecord } from '../borrow-record/borrow-record.entity';
+import { Book } from '../book/book.entity';
 
 @Entity({ name: 'readers' })
 export class Reader {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     userId: string;
-
-    @OneToOne(() => User, { eager: true })
-    @JoinColumn({ name: 'userId' })
-    user: User;
 
     @Column({ type: 'varchar', nullable: true, default: null })
     address: string | null;
 
-    @Column({ type: 'varchar', array: true, nullable: false, default: [] })
-    readingCardIds: string[];
+    @OneToOne(() => User, { eager: false, nullable: true })
+    @JoinColumn()
+    user: User | null;
 
-    @Column({ type: 'varchar', array: true, nullable: false, default: [] })
-    borrowRecordIds: string[];
+    @OneToMany(() => ReadingCard, readingCard => readingCard.reader, { eager: false })
+    readingCards: ReadingCard[];
+
+    @OneToMany(() => BorrowRecord, borrowRecord => borrowRecord.reader, { eager: false })
+    borrowRecords: BorrowRecord[];
+
+    @ManyToMany(() => Book, book => book.waitingReaders, { eager: false })
+    waitingBooks: Book[];
 }

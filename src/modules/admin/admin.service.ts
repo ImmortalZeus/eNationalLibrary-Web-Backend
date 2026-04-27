@@ -18,101 +18,119 @@ export class AdminService {
         private readonly userService: UserService,
     ) {}
 
-    async create(dto: CreateAdminDto): Promise<AdminPublicDto> {
-        const existing = await this.adminRepo.findOneBy({ userId: dto.userId });
-        if (existing) {
-            throw new ConflictException('userId already exists');
-        }
-
-        const admin = AdminMapper.createFromDto(dto);
+    async create(dto: CreateAdminDto): Promise<Admin> {
+        const admin = await AdminMapper.createFromDto(dto);
         
         if(admin.user) {
-            const userPublicDto = await this.userService.create(admin.user);
+            // const userPublicDto = await this.userService.create(admin.user);
+            const user = await this.userService.create(dto.user);
+            admin.user = user;
         }
 
-        const saved = await this.adminRepo.save(admin);
+        const saved = await this.save(admin);
 
-        return AdminMapper.toAdminPublicDto(saved);
+        // return AdminMapper.toAdminPublicDto(saved);
+        return saved;
     }
 
-    async findOneById(userId: string | { userId: string }): Promise<AdminPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
-        return this.findOneByOptions(options);
+    async findOneById(userId: string | { userId: string }, relations: string[]): Promise<Admin | null> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
+        return this.findOneByOptions(options, relations);
     }
 
-    async findOneByOptions(options: FindOptionsWhere<Admin>): Promise<AdminPublicDto | null> {
-        const admin = await this.adminRepo.findOne({ where: options });
+    async findOneByOptions(options: FindOptionsWhere<Admin>, relations: string[]): Promise<Admin | null> {
+        const admin = await this.adminRepo.findOne({ where: options, relations: relations });
         if(!admin) return null;
-        return AdminMapper.toAdminPublicDto(admin);
+        // return AdminMapper.toAdminPublicDto(admin);
+        return admin;
     }
 
-    async findManyByOptions(options: FindOptionsWhere<Admin>): Promise<AdminPublicDto[]> {
-        const admins = await this.adminRepo.find({ where: options });
-        return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
+    async findManyByOptions(options: FindOptionsWhere<Admin>, relations: string[]): Promise<Admin[]> {
+        const admins = await this.adminRepo.find({ where: options, relations: relations });
+        // return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
+        return admins;
     }
 
-    async findAll(): Promise<AdminPublicDto[]> {
-        return this.findManyByOptions({});
+    async findAll(relations: string[]): Promise<Admin[]> {
+        return this.findManyByOptions({}, relations);
     }
 
-    async updateOneById(userId: string | { userId: string }, dto: UpdateAdminDto): Promise<AdminPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
+    async updateOneById(userId: string | { userId: string }, dto: UpdateAdminDto): Promise<boolean> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
         return this.updateOneByOptions(options, dto);
     }
 
-    async updateOneByOptions(options: FindOptionsWhere<Admin>, dto: UpdateAdminDto): Promise<AdminPublicDto | null> {
-        const admin = await this.adminRepo.findOne({ where: options });
-        if(!admin) return null;
+    async updateOneByOptions(options: FindOptionsWhere<Admin>, dto: UpdateAdminDto): Promise<boolean> {
+        const admin = await this.findOneByOptions(options, []);
+        if(!admin) return false;
         
-        AdminMapper.updateFromDto(admin, dto);
+        await AdminMapper.updateFromDto(admin, dto);
 
-        if(admin.user) {
-            const userPublicDto = await this.userService.updateOneByOptions({ userId: admin.user.userId }, admin.user);
+        if(dto.user) {
+            await this.userService.updateOneById(admin.userId, dto.user);
+            
+            // admin.user = await this.userService.findOneById(admin.userId, []);
         }
 
-        const saved = await this.adminRepo.save(admin);
+        const saved = await this.save(admin);
 
-        return AdminMapper.toAdminPublicDto(saved);
+        // return AdminMapper.toAdminPublicDto(saved);
+
+        return true;
     }
 
-    async updateManyByOptions(options: FindOptionsWhere<Admin>, dto: UpdateAdminDto): Promise<AdminPublicDto[]> {
-        const admins = await this.adminRepo.find({ where: options });
+    async updateManyByOptions(options: FindOptionsWhere<Admin>, dto: UpdateAdminDto): Promise<boolean> {
+        const admins = await this.findManyByOptions(options, []);
         
         for (const admin of admins) {
-            AdminMapper.updateFromDto(admin, dto);
+            await AdminMapper.updateFromDto(admin, dto);
 
-            if (admin.user) {
-                const userPublicDto = await this.userService.updateOneByOptions({ userId: admin.user.userId }, admin.user);
+            if (dto.user) {
+                await this.userService.updateOneById(admin.userId, dto.user);
+                
+                // admin.user = await this.userService.findOneById(admin.userId, []);
             }
-            await this.adminRepo.save(admin);
+
+            await this.save(admin);
         }
 
-        return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
+        // return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
+
+        return true;
     }
 
-    async removeOneById(userId: string | { userId: string }): Promise<AdminPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
+    async removeOneById(userId: string | { userId: string }): Promise<boolean> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
         return this.removeOneByOptions(options);
     }
 
-    async removeOneByOptions(options: FindOptionsWhere<Admin>): Promise<AdminPublicDto | null> {
-        const admin = await this.adminRepo.findOne({ where: options });
-        if (!admin) return null;
-        await this.adminRepo.remove(admin);
+    async removeOneByOptions(options: FindOptionsWhere<Admin>): Promise<boolean> {
+        const admin = await this.findOneByOptions(options, ['users']);
+        if (!admin) return false;
+        await this.remove(admin);
         if (admin.user) {
-            const userPublicDto = await this.userService.removeOneByOptions({ userId: admin.user.userId });
+            await this.userService.remove(admin.user);
         }
-        return AdminMapper.toAdminPublicDto(admin);
+        // return AdminMapper.toAdminPublicDto(admin);
+        return true;
     }
 
-    async removeManyByOptions(options: FindOptionsWhere<Admin>): Promise<AdminPublicDto[]> {
-        const admins = await this.adminRepo.find({ where: options });
-        await this.adminRepo.remove(admins);
-        for (const admin of admins) {
-            if (admin.user) {
-                const userPublicDto = await this.userService.removeOneByOptions({ userId: admin.user.userId });
-            }
-        }
-        return admins.map(admin => AdminMapper.toAdminPublicDto(admin));
+    async removeManyByOptions(options: FindOptionsWhere<Admin>): Promise<boolean> {
+        const admins = await this.findManyByOptions(options, ['users']);
+        await this.removeMany(admins);
+        await this.userService.removeMany(admins.map(a => a.user).filter(e => !!e));
+        return true;
+    }
+
+    async save(admin: Admin): Promise<Admin> {
+        return await this.adminRepo.save(admin);
+    }
+
+    async remove(admin: Admin): Promise<Admin> {
+        return await this.adminRepo.remove(admin);
+    }
+
+    async removeMany(admins: Admin[]): Promise<Admin[]> {
+        return await this.adminRepo.remove(admins);
     }
 }

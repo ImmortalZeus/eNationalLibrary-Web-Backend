@@ -1,9 +1,10 @@
-import { Entity, Column, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { ReadingCardType } from 'src/common/enums/readingCard/readingCardType.enum';
+import { Reader } from '../reader/reader.entity';
 
 @Entity({ name: 'reading-cards' })
 export class ReadingCard {
-    @PrimaryColumn({ type: 'varchar', nullable: false, unique: true })
+    @PrimaryGeneratedColumn('uuid')
     readingCardId: string;
 
     @Column({ type: 'varchar', nullable: false })
@@ -17,4 +18,8 @@ export class ReadingCard {
     
     @Column({ type: 'date', nullable: false })
     expiryDate: Date;
+
+    @ManyToOne(() => Reader, reader => reader.readingCards, { eager: false, nullable: true })
+    @JoinColumn()
+    reader: Reader | null;
 }

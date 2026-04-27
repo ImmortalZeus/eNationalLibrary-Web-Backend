@@ -1,25 +1,29 @@
 import { Expose } from 'class-transformer';
 import { IsString, IsEmail, IsEnum, MinLength, IsOptional, IsArray } from 'class-validator';
-import { ReadingCardType } from 'src/common/enums/readingCard/readingCardType.enum';
+import { Book } from 'src/modules/book/book.entity';
+import { BookPublicDto } from 'src/modules/book/dto/book-public.dto';
 import { ReaderPublicDto } from 'src/modules/reader/dto/reader-public.dto';
 import { Reader } from 'src/modules/reader/reader.entity';
 
-export class ReadingCardPublicDto {
+export class BorrowRecordPublicDto {
     @Expose()
-    readingCardId: string;
+    borrowRecordId: string;
 
     @Expose()
-    label: string;
+    quantity: number;
 
     @Expose()
-    type: ReadingCardType;
+    borrowDate: Date;
 
     @Expose()
-    activationDate: Date;
-    
+    dueDate: Date;
+
     @Expose()
-    expiryDate: Date | null;
+    actualReturnDate?: Date | null;
 
     @Expose()
     reader?: ReaderPublicDto;
+
+    @Expose()
+    book?: BookPublicDto;
 }

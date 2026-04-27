@@ -15,81 +15,88 @@ export class UserService {
         private readonly userRepo: Repository<User>,
     ) {}
 
-    async create(dto: CreateUserDto): Promise<UserPublicDto> {
-        const existing = await this.userRepo.findOneBy({ userId: dto.userId });
-        if (existing) {
-            throw new ConflictException('UserId already exists');
-        }
-
-        const user = this.userRepo.create(dto);
-
-        const saved = await this.userRepo.save(user);
+    async create(dto: CreateUserDto): Promise<User> {
+        const user = await UserMapper.createFromDto(dto);
         
-        return UserMapper.toUserPublicDto(saved);
+        const saved = await this.save(user);
+        
+        return saved;
     }
 
-    async findOneById(userId: string | { userId: string }): Promise<UserPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
-        return this.findOneByOptions(options);
+    async findOneById(userId: string | { userId: string }, relations: string[]): Promise<User | null> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
+        return this.findOneByOptions(options, relations);
     }
 
-    async findOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
-        const user = await this.userRepo.findOne({ where: options });
+    async findOneByOptions(options: FindOptionsWhere<User>, relations: string[]): Promise<User | null> {
+        const user = await this.userRepo.findOne({ where: options, relations: relations });
         if(!user) return null;
-        return UserMapper.toUserPublicDto(user);
+        return user;
     }
 
-    async findManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
-        const users = await this.userRepo.find({ where: options });
-        return users.map(user => UserMapper.toUserPublicDto(user));
+    async findManyByOptions(options: FindOptionsWhere<User>, relations: string[]): Promise<User[]> {
+        const users = await this.userRepo.find({ where: options, relations: relations });
+        return users;
     }
 
-    async findAll(): Promise<UserPublicDto[]> {
-        return this.findManyByOptions({});
+    async findAll(relations: string[]): Promise<User[]> {
+        return this.findManyByOptions({}, relations);
     }
 
-    async updateOneById(userId: string | { userId: string }, dto: UpdateUserDto): Promise<UserPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
+    async updateOneById(userId: string | { userId: string }, dto: UpdateUserDto): Promise<boolean> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
         return this.updateOneByOptions(options, dto);
     }
 
-    async updateOneByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto | null> {
-        const user = await this.userRepo.findOne({ where: options });
-        if(!user) return null;
+    async updateOneByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<boolean> {
+        const user = await this.findOneByOptions(options, []);
+        if(!user) return false;
         
-        UserMapper.updateFromDto(user, dto);
+        await UserMapper.updateFromDto(user, dto);
 
-        const saved = await this.userRepo.save(user);
+        const saved = await this.save(user);
 
-        return UserMapper.toUserPublicDto(saved);
+        return true;
     }
 
-    async updateManyByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<UserPublicDto[]> {
-        const users = await this.userRepo.find({ where: options });
+    async updateManyByOptions(options: FindOptionsWhere<User>, dto: UpdateUserDto): Promise<boolean> {
+        const users = await this.findManyByOptions(options, []);
         
         for (const user of users) {
-            UserMapper.updateFromDto(user, dto);
-            await this.userRepo.save(user);
+            await UserMapper.updateFromDto(user, dto);
+            await this.save(user);
         }
 
-        return users.map(user => UserMapper.toUserPublicDto(user));
+        return true;
     }
 
-    async removeOneById(userId: string | { userId: string }): Promise<UserPublicDto | null> {
-        const options = typeof userId === "string" ? { userId: userId } : userId;
+    async removeOneById(userId: string | { userId: string }): Promise<boolean> {
+        const options = typeof userId === "string" ? { userId: userId } : { userId: userId.userId };
         return this.removeOneByOptions(options);
     }
 
-    async removeOneByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto | null> {
-        const user = await this.userRepo.findOne({ where: options });
-        if (!user) return null;
-        await this.userRepo.remove(user);
-        return UserMapper.toUserPublicDto(user);
+    async removeOneByOptions(options: FindOptionsWhere<User>): Promise<boolean> {
+        const user = await this.findOneByOptions(options, []);
+        if (!user) return false;
+        await this.remove(user);
+        return true;
     }
 
-    async removeManyByOptions(options: FindOptionsWhere<User>): Promise<UserPublicDto[]> {
-        const users = await this.userRepo.find({ where: options });
-        await this.userRepo.remove(users);
-        return users.map(user => UserMapper.toUserPublicDto(user));
+    async removeManyByOptions(options: FindOptionsWhere<User>, relations: string[]): Promise<boolean> {
+        const users = await this.findManyByOptions(options, []);
+        await this.removeMany(users);
+        return true;
+    }
+
+    async save(user: User): Promise<User> {
+        return await this.userRepo.save(user);
+    }
+
+    async remove(user: User): Promise<User> {
+        return await this.userRepo.remove(user);
+    }
+
+    async removeMany(users: User[]): Promise<User[]> {
+        return await this.userRepo.remove(users);
     }
 }

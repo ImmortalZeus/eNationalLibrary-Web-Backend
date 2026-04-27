@@ -4,10 +4,6 @@ import { IsPresent } from 'src/common/validators/isPresent.validator';
 export class CreatePublisherDto {
     @IsPresent()
     @IsString()
-    publisherId: string;
-
-    @IsPresent()
-    @IsString()
     name: string;
 
     @IsPresent()
