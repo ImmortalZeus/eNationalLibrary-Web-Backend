@@ -4,10 +4,16 @@ import { Reader } from './reader.entity';
 import { ReaderService } from './reader.service';
 import { ReaderController } from './reader.controller';
 import { UserModule } from '../user/user.module';
+import { ReadingCardModule } from '../reading-card/reading-card.module';
+import { BorrowRecordModule } from '../borrow-record/borrow-record.module';
+import { BookModule } from '../book/book.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Reader]),
+        ReadingCardModule,
+        BorrowRecordModule,
+        BookModule,
         UserModule
     ],
     controllers: [ReaderController],
