@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Book } from './book.entity';
@@ -12,12 +12,18 @@ import { GenreService } from '../genre/genre.service';
 @Injectable()
 export class BookService {
     constructor(
-        @InjectRepository(Book)
-        private readonly bookRepo: Repository<Book>,
-        private readonly authorService: AuthorService,
-        private readonly publisherService: PublisherService,
-        private readonly genreService: GenreService
-    ) {}
+    @InjectRepository(Book)
+    private readonly bookRepo: Repository<Book>,
+
+    @Inject(forwardRef(() => AuthorService))
+    private readonly authorService: AuthorService,
+
+    @Inject(forwardRef(() => PublisherService))
+    private readonly publisherService: PublisherService,
+
+    @Inject(forwardRef(() => GenreService))
+    private readonly genreService: GenreService,
+) {}
 
     async create(dto: CreateBookDto): Promise<Book> {
         const book = BookMapper.createFromDto(dto);

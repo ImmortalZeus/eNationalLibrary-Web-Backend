@@ -20,6 +20,7 @@ import { UserService } from './modules/user/user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BookModule } from './modules/book/book.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
     imports: [
@@ -49,6 +50,7 @@ import { BookModule } from './modules/book/book.module';
         PublisherModule,
         AuthorModule,
         BorrowRecordModule,
+        AuthModule,
     ],
     controllers: [AppController],
     providers: [AppService],
