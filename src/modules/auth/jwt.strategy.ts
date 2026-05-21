@@ -5,6 +5,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor() {
+        console.log('JWT_SECRET in strategy:', process.env.JWT_SECRET); // Debug log to check the JWT_SECRET value
+
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
@@ -20,3 +22,4 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         };
     }
 }
+console.log('🔥 AUTH MODULE LOADED 🔥');
