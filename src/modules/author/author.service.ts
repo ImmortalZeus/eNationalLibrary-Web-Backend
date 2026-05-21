@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Author } from './author.entity';
@@ -12,10 +12,12 @@ import { BookService } from '../book/book.service';
 @Injectable()
 export class AuthorService {
     constructor(
-        @InjectRepository(Author)
-        private readonly authorRepo: Repository<Author>,
-        private readonly bookService: BookService,
-    ) {}
+    @InjectRepository(Author)
+    private readonly authorRepo: Repository<Author>,
+
+    @Inject(forwardRef(() => BookService))
+    private readonly bookService: BookService,
+) {}
 
     async create(dto: CreateAuthorDto): Promise<Author> {
         const author = await AuthorMapper.createFromDto(dto);

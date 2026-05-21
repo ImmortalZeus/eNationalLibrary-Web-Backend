@@ -1,10 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { Book } from './book.entity';
-import { BookPublicDto } from './dto/book-public.dto';
 import { CreateBookDto } from './dto/create-book.dto';
-import { plainToInstance } from 'class-transformer';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { BookMapper } from './book.mapper';
 import { AuthorService } from '../author/author.service';
@@ -14,15 +12,21 @@ import { GenreService } from '../genre/genre.service';
 @Injectable()
 export class BookService {
     constructor(
-        @InjectRepository(Book)
-        private readonly bookRepo: Repository<Book>,
-        private readonly authorService: AuthorService,
-        private readonly publisherService: PublisherService,
-        private readonly genreService: GenreService
-    ) {}
+    @InjectRepository(Book)
+    private readonly bookRepo: Repository<Book>,
+
+    @Inject(forwardRef(() => AuthorService))
+    private readonly authorService: AuthorService,
+
+    @Inject(forwardRef(() => PublisherService))
+    private readonly publisherService: PublisherService,
+
+    @Inject(forwardRef(() => GenreService))
+    private readonly genreService: GenreService,
+) {}
 
     async create(dto: CreateBookDto): Promise<Book> {
-        const book = await BookMapper.createFromDto(dto);
+        const book = BookMapper.createFromDto(dto);
 
         book.authors = [];
 
@@ -123,7 +127,7 @@ export class BookService {
         const book = await this.findOneByOptions(options, []);
         if(!book) return false;
 
-        await BookMapper.updateFromDto(book, dto);
+        BookMapper.updateFromDto(book, dto);
 
         if(dto.authorIds || dto.newAuthors) {
             book.authors = [];
@@ -191,7 +195,7 @@ export class BookService {
         const books = await this.findManyByOptions(options, []);
 
         for (const book of books) {
-            await BookMapper.updateFromDto(book, dto);
+            BookMapper.updateFromDto(book, dto);
 
             if(dto.authorIds || dto.newAuthors) {
                 book.authors = [];

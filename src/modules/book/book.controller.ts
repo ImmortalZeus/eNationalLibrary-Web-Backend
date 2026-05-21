@@ -6,8 +6,11 @@ import { Book } from './book.entity'
 import { BookPublicDto } from './dto/book-public.dto';
 import { BookMapper } from './book.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('books')
+@UseGuards(JwtAuthGuard)
+@Controller('book')
 export class BookController {
     constructor(private readonly bookService: BookService) {}
 

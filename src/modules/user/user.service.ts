@@ -99,4 +99,13 @@ export class UserService {
     async removeMany(users: User[]): Promise<User[]> {
         return await this.userRepo.remove(users);
     }
+
+    async findByUsernameOrEmail(usernameOrEmail: string): Promise<User | null> {
+    return this.userRepo.findOne({
+        where: [
+            { username: usernameOrEmail },
+            { email: usernameOrEmail },
+        ],
+    });
+}
 }
