@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsEnum, MinLength, IsOptional, IsDefined } from 'class-validator';
+import { IsString, IsEmail, IsEnum, MinLength, IsOptional } from 'class-validator';
 import { UserGender } from 'src/common/enums/user/userGender.enum';
 import { UserRole } from 'src/common/enums/user/userRole.enum';
 import { UserStatus } from 'src/common/enums/user/userStatus.enum';
@@ -21,7 +21,7 @@ export class CreateUserDto {
     @IsPresent()
     @IsString()
     @MinLength(8)
-    passwordHash: string;
+    password: string;   
 
     @IsOptional()
     @IsStringOrNull()

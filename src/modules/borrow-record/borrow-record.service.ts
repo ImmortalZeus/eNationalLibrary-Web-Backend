@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { BorrowRecord } from './borrow-record.entity';
@@ -13,10 +13,14 @@ import { BookService } from '../book/book.service';
 @Injectable()
 export class BorrowRecordService {
     constructor(
-        @InjectRepository(BorrowRecord)
-        private readonly borrowRecordRepo: Repository<BorrowRecord>,
-        private readonly readerService: ReaderService,
-        private readonly bookService: BookService,
+    @InjectRepository(BorrowRecord)
+    private readonly borrowRecordRepo: Repository<BorrowRecord>,
+
+    @Inject(forwardRef(() => ReaderService))
+    private readonly readerService: ReaderService,
+
+    @Inject(forwardRef(() => BookService))
+    private readonly bookService: BookService,
     ) {}
 
     async create(dto: CreateBorrowRecordDto): Promise<BorrowRecord> {
