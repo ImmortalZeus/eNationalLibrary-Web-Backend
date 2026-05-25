@@ -12,7 +12,7 @@ export class Reader {
     @Column({ type: 'varchar', nullable: true, default: null })
     address: string | null;
 
-    @OneToOne(() => User, { eager: false, nullable: true })
+    @OneToOne(() => User, { eager: true, nullable: true })
     @JoinColumn()
     user: User | null;
 
