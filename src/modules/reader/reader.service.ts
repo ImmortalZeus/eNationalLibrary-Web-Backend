@@ -52,10 +52,23 @@ export class ReaderService {
     }
 
     async findOneByOptions(options: FindOptionsWhere<Reader>, relations: string[]): Promise<Reader | null> {
-        const reader = await this.readerRepo.findOne({ where: options, relations: relations });
-        if(!reader) return null;
-        return reader;
+    const reader = await this.readerRepo.findOne({ 
+        where: options, 
+        relations: relations,
+    });
+    if (!reader) return null;
+    
+    // If 'user' is in relations but user is null, try loading it explicitly
+    if (relations.includes('user') && !reader.user) {
+        const readerWithUser = await this.readerRepo.findOne({
+            where: options,
+            relations: ['user'],
+        });
+        if (readerWithUser?.user) reader.user = readerWithUser.user;
     }
+    
+    return reader;
+}
 
     async findManyByOptions(options: FindOptionsWhere<Reader>, relations: string[]): Promise<Reader[]> {
         const readers = await this.readerRepo.find({ where: options, relations: relations });

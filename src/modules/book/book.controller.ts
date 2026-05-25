@@ -10,7 +10,7 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
-@Controller('book')
+@Controller('books')
 export class BookController {
     constructor(private readonly bookService: BookService) {}
 
