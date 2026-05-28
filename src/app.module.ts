@@ -21,7 +21,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BookModule } from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
-
+import { ReviewModule } from './modules/review/review.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -51,6 +51,7 @@ import { AuthModule } from './modules/auth/auth.module';
         AuthorModule,
         BorrowRecordModule,
         AuthModule,
+        ReviewModule,
     ],
     controllers: [AppController],
     providers: [AppService],
