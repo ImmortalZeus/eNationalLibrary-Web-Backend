@@ -4,7 +4,7 @@ import { Author } from '../author/author.entity';
 import { Publisher } from '../publisher/publisher.entity';
 import { Genre } from '../genre/genre.entity';
 import { BorrowRecord } from '../borrow-record/borrow-record.entity';
-
+import { Review } from '../review/review.entity';
 @Entity({ name: 'books' })
 export class Book {
     @PrimaryGeneratedColumn('uuid')
@@ -34,6 +34,9 @@ export class Book {
     @ManyToMany(() => Reader, reader => reader.waitingBooks, { eager: false })
     @JoinTable()
     waitingReaders: Reader[];
+
+    @OneToMany(() => Review, review => review.book, { eager: false })
+    reviews: Review[];
 
     @OneToMany(() => BorrowRecord, borrowRecord => borrowRecord.book, { eager: false })
     borrowRecords: BorrowRecord[];

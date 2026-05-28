@@ -6,7 +6,7 @@ import { Book } from './book.entity';
 import { BookPublicDto } from './dto/book-public.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
-
+import { ReviewMapper } from '../review/review.mapper';
 export class BookMapper {
   static createFromDto(dto: CreateBookDto): Book {
     const book = new Book();
@@ -39,6 +39,9 @@ export class BookMapper {
         ),
         genres: book.genres?.map((genre) =>
           GenreMapper.toGenrePublicDto(genre),
+        ),
+        reviews: book.reviews?.map((review) =>
+          ReviewMapper.toReviewPublicDto(review),
         ),
       },
       { excludeExtraneousValues: true },

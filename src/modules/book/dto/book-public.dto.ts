@@ -8,7 +8,7 @@ import { Genre } from 'src/modules/genre/genre.entity';
 import { PublisherPublicDto } from 'src/modules/publisher/dto/publisher-public.dto';
 import { Publisher } from 'src/modules/publisher/publisher.entity';
 import { ReaderPublicDto } from 'src/modules/reader/dto/reader-public.dto';
-
+import { ReviewPublicDto } from 'src/modules/review/dto/review-public.dto';
 export class BookPublicDto {
     @Expose()
     bookId: string;
@@ -25,6 +25,9 @@ export class BookPublicDto {
     @Expose()
     authors?: AuthorPublicDto[];
 
+    @Expose()
+    reviews?: ReviewPublicDto[];
+    
     @Expose()
     publishers?: PublisherPublicDto[];
 

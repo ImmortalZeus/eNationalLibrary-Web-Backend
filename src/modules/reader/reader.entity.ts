@@ -3,7 +3,7 @@ import { User } from '../user/user.entity';
 import { ReadingCard } from '../reading-card/reading-card.entity';
 import { BorrowRecord } from '../borrow-record/borrow-record.entity';
 import { Book } from '../book/book.entity';
-
+import { Review } from '../review/review.entity';
 @Entity({ name: 'readers' })
 export class Reader {
     @PrimaryGeneratedColumn('uuid')
@@ -15,6 +15,9 @@ export class Reader {
     @OneToOne(() => User, { eager: true, nullable: true })
     @JoinColumn()
     user: User | null;
+    
+    @OneToMany(() => Review, review => review.reader, { eager: false })
+    reviews: Review[];
 
     @OneToMany(() => ReadingCard, readingCard => readingCard.reader, { eager: false })
     readingCards: ReadingCard[];
