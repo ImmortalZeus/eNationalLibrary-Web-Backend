@@ -5,6 +5,7 @@ import { CreateReturnRecordDto } from './dto/create-return-record.dto';
 import { plainToInstance } from 'class-transformer';
 import { BookMapper } from '../book/book.mapper';
 import { ReaderMapper } from '../reader/reader.mapper';
+import { ReturnRecordConfig } from 'src/common/configs/returnRecord.config';
 
 export class ReturnRecordMapper {
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -16,6 +17,11 @@ export class ReturnRecordMapper {
         returnRecord.dueDate = new Date(dto.dueDate);
         returnRecord.actualReturnDate = new Date(dto.actualReturnDate);
 
+        const daysLate = Math.max(0, Math.floor(
+            (returnRecord.actualReturnDate.getTime() - returnRecord.dueDate.getTime()) / (1000 * 60 * 60 * 24)
+        ));
+        returnRecord.lateFee = daysLate * ReturnRecordConfig.lateFeePerDay;
+
         return returnRecord;
     }
 
@@ -25,6 +31,12 @@ export class ReturnRecordMapper {
         returnRecord.borrowDate = dto.borrowDate ? new Date(dto.borrowDate) : returnRecord.borrowDate;
         returnRecord.dueDate = dto.dueDate ? new Date(dto.dueDate) : returnRecord.dueDate;
         returnRecord.actualReturnDate = dto.actualReturnDate ? new Date(dto.actualReturnDate) : returnRecord.actualReturnDate;
+
+        // Recalculate based on final effective values
+        const daysLate = Math.max(0, Math.floor(
+            (returnRecord.actualReturnDate.getTime() - returnRecord.dueDate.getTime()) / (1000 * 60 * 60 * 24)  // Convert milliseconds to days
+        ));
+        returnRecord.lateFee = daysLate * ReturnRecordConfig.lateFeePerDay;
 
         return returnRecord;
     }
