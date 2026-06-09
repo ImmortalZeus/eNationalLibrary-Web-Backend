@@ -125,8 +125,32 @@ export class ReaderService {
     }
 
     async removeOneByOptions(options: FindOptionsWhere<Reader>): Promise<boolean> {
-        const reader = await this.findOneByOptions(options, ['users']);
+        // Load the reader together with everything that references it, so foreign-key
+        // constraints don't block the delete. NOTE: the relation is "user" (singular).
+        const reader = await this.findOneByOptions(
+            options,
+            ['user', 'borrowRecords', 'readingCards', 'reviews', 'waitingBooks'],
+        );
         if (!reader) return false;
+
+        const manager = this.readerRepo.manager;
+
+        // Detach many-to-many waiting books (clears the join-table rows).
+        if (reader.waitingBooks && reader.waitingBooks.length) {
+            reader.waitingBooks = [];
+            await this.save(reader);
+        }
+        // Delete dependent records that hold a FK to this reader.
+        if (reader.borrowRecords && reader.borrowRecords.length) {
+            await manager.remove(reader.borrowRecords);
+        }
+        if (reader.readingCards && reader.readingCards.length) {
+            await manager.remove(reader.readingCards);
+        }
+        if (reader.reviews && reader.reviews.length) {
+            await manager.remove(reader.reviews);
+        }
+
         await this.remove(reader);
         if (reader.user) {
             await this.userService.remove(reader.user);
@@ -135,7 +159,7 @@ export class ReaderService {
     }
 
     async removeManyByOptions(options: FindOptionsWhere<Reader>): Promise<boolean> {
-        const readers = await this.findManyByOptions(options, ['users']);
+        const readers = await this.findManyByOptions(options, ['user']);
         await this.removeMany(readers);
         await this.userService.removeMany(readers.map(r => r.user).filter(e => !!e));
         return true;

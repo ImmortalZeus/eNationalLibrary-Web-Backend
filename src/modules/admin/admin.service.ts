@@ -105,7 +105,7 @@ export class AdminService {
     }
 
     async removeOneByOptions(options: FindOptionsWhere<Admin>): Promise<boolean> {
-        const admin = await this.findOneByOptions(options, ['users']);
+        const admin = await this.findOneByOptions(options, ['user']);
         if (!admin) return false;
         await this.remove(admin);
         if (admin.user) {
@@ -116,7 +116,7 @@ export class AdminService {
     }
 
     async removeManyByOptions(options: FindOptionsWhere<Admin>): Promise<boolean> {
-        const admins = await this.findManyByOptions(options, ['users']);
+        const admins = await this.findManyByOptions(options, ['user']);
         await this.removeMany(admins);
         await this.userService.removeMany(admins.map(a => a.user).filter(e => !!e));
         return true;
