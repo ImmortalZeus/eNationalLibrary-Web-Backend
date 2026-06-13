@@ -4,6 +4,7 @@ import { Author } from '../author/author.entity';
 import { Publisher } from '../publisher/publisher.entity';
 import { Genre } from '../genre/genre.entity';
 import { BorrowRecord } from '../borrow-record/borrow-record.entity';
+import { ReturnRecord } from '../return-record/return-record.entity';
 import { Review } from '../review/review.entity';
 @Entity({ name: 'books' })
 export class Book {
@@ -40,4 +41,7 @@ export class Book {
 
     @OneToMany(() => BorrowRecord, borrowRecord => borrowRecord.book, { eager: false })
     borrowRecords: BorrowRecord[];
+
+    @OneToMany(() => ReturnRecord, returnRecord => returnRecord.book, { eager: false })
+    returnRecords: ReturnRecord[];
 }

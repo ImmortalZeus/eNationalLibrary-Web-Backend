@@ -22,9 +22,9 @@ export class BorrowRecordMapper {
     // eslint-disable-next-line @typescript-eslint/require-await
     static async updateFromDto(borrowRecord: BorrowRecord, dto: UpdateBorrowRecordDto): Promise<BorrowRecord> {
         borrowRecord.quantity = dto.quantity ? dto.quantity : borrowRecord.quantity;
-        borrowRecord.borrowDate = dto.borrowDate ? new Date(dto.borrowDate) : borrowRecord.borrowDate;
-        borrowRecord.dueDate = dto.dueDate ? new Date(dto.dueDate) : borrowRecord.dueDate;
-        borrowRecord.actualReturnDate = dto.actualReturnDate === null ? null : (!dto.actualReturnDate ? borrowRecord.actualReturnDate : new Date(dto.actualReturnDate));
+        borrowRecord.borrowDate = dto.borrowDate ? new Date(dto.borrowDate) : borrowRecord.borrowDate; 
+        borrowRecord.dueDate = dto.dueDate ? new Date(dto.dueDate) : borrowRecord.dueDate; 
+        borrowRecord.actualReturnDate = dto.actualReturnDate === null ? null : (!dto.actualReturnDate ? borrowRecord.actualReturnDate : new Date(dto.actualReturnDate));   
 
         return borrowRecord;
     }
