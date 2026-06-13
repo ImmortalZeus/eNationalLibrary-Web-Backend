@@ -2,6 +2,7 @@ import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, OneToMany, ManyToM
 import { User } from '../user/user.entity';
 import { ReadingCard } from '../reading-card/reading-card.entity';
 import { BorrowRecord } from '../borrow-record/borrow-record.entity';
+import { ReturnRecord } from '../return-record/return-record.entity';
 import { Book } from '../book/book.entity';
 import { Review } from '../review/review.entity';
 @Entity({ name: 'readers' })
@@ -24,6 +25,9 @@ export class Reader {
 
     @OneToMany(() => BorrowRecord, borrowRecord => borrowRecord.reader, { eager: false })
     borrowRecords: BorrowRecord[];
+
+    @OneToMany(() => ReturnRecord, returnRecord => returnRecord.reader, { eager: false })
+    returnRecords: ReturnRecord[];
 
     @ManyToMany(() => Book, book => book.waitingReaders, { eager: false })
     waitingBooks: Book[];
