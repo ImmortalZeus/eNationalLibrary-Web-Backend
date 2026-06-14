@@ -34,7 +34,6 @@ export class PromotionMapper {
         if (dto.applicableAgeMax !== undefined) promotion.applicableAgeMax = dto.applicableAgeMax;
         if (dto.startDate !== undefined) promotion.startDate = new Date(dto.startDate);
         if (dto.endDate !== undefined) promotion.endDate = new Date(dto.endDate);
-        if (dto.priority !== undefined) promotion.priority = dto.priority;
     }
 
     static toPromotionPublicDto(promotion: Promotion): PromotionPublicDto {
