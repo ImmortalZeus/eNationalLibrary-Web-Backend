@@ -39,6 +39,7 @@ export class ReaderService {
         if(dto.user) {
             const user = await this.userService.create(dto.user);
             reader.user = user;
+            reader.userId = user.userId;
         }
 
         const saved = await this.save(reader);

@@ -1,22 +1,23 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, OneToMany, ManyToMany } from 'typeorm';
 import { User } from '../user/user.entity';
 import { ReadingCard } from '../reading-card/reading-card.entity';
 import { BorrowRecord } from '../borrow-record/borrow-record.entity';
 import { ReturnRecord } from '../return-record/return-record.entity';
 import { Book } from '../book/book.entity';
 import { Review } from '../review/review.entity';
+
 @Entity({ name: 'readers' })
 export class Reader {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryColumn('uuid')
     userId: string;
 
     @Column({ type: 'varchar', nullable: true, default: null })
     address: string | null;
 
     @OneToOne(() => User, { eager: true, nullable: true })
-    @JoinColumn()
+    @JoinColumn({ name: 'userId' })
     user: User | null;
-    
+
     @OneToMany(() => Review, review => review.reader, { eager: false })
     reviews: Review[];
 

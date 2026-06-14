@@ -17,11 +17,11 @@ export class ReaderController {
 
     // CREATE
     @Post()
-    async create(
-        @Body() createReaderDto: CreateReaderDto
-    ): Promise<string> {
-        const reader = await this.readerService.create(createReaderDto);
-        return reader.userId;
+    async create(@Body() createReaderDto: CreateReaderDto): Promise<string> {
+    console.log("Creating reader with dto:", JSON.stringify(createReaderDto));
+    const reader = await this.readerService.create(createReaderDto);
+    console.log("Created reader with userId:", reader.userId);
+    return reader.userId;
     }
 
     // READ ALL
@@ -38,13 +38,10 @@ export class ReaderController {
     // READ ONE
     @UseGuards(JwtAuthGuard)
     @Get(':id')
-    async findOneById(
-        @Param('id') id: string,
-        @Query('relations', ParseRelationsPipe) relations: string[]
-    ): Promise<ReaderPublicDto | null> {
-        const reader = await this.readerService.findOneById(id, relations);
-        return reader ? ReaderMapper.toReaderPublicDto(reader) : null;
-    }
+async findOneById(@Param('id') id: string, @Query('relations', ParseRelationsPipe) relations: string[]): Promise<ReaderPublicDto | null> {
+    const reader = await this.readerService.findOneById(id, relations);
+    return reader ? ReaderMapper.toReaderPublicDto(reader) : null;
+}
 
     // UPDATE
     @UseGuards(JwtAuthGuard)
