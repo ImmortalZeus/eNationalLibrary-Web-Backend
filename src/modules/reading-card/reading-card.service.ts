@@ -2,9 +2,7 @@ import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/commo
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { ReadingCard } from './reading-card.entity';
-import { ReadingCardPublicDto } from './dto/reading-card-public.dto';
 import { CreateReadingCardDto } from './dto/create-reading-card.dto';
-import { plainToInstance } from 'class-transformer';
 import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { ReadingCardMapper } from './reading-card.mapper';
 import { ReaderService } from '../reader/reader.service';
@@ -52,6 +50,13 @@ export class ReadingCardService {
             } else {
                 throw new NotFoundException(`Reader with id ${dto.readerId} not found`);
             }
+        } else {
+            // No readerId: apply default pricing (no promotion)
+            const pricing = this.promotionService.applyPromotionToCard(null, readingCard.type);
+            readingCard.originalPrice = pricing.originalPrice;
+            readingCard.discountedPrice = pricing.discountedPrice;
+            readingCard.effectiveMaxBorrowedBooks = pricing.effectiveMaxBorrowedBooks;
+            readingCard.effectiveMaxBorrowDurationDays = pricing.effectiveMaxBorrowDurationDays;
         }
 
         const saved = await this.save(readingCard);
