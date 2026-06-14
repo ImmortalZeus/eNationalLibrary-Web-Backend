@@ -22,6 +22,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BookModule } from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ReviewModule } from './modules/review/review.module';
+import { ReturnRecordModule } from './modules/return-record/return-record.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -52,6 +53,7 @@ import { ReviewModule } from './modules/review/review.module';
         BorrowRecordModule,
         AuthModule,
         ReviewModule,
+        ReturnRecordModule
     ],
     controllers: [AppController],
     providers: [AppService],
