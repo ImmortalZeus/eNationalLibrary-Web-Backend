@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreatePublisherDto } from './dto/create-publisher.dto';
 import { UpdatePublisherDto } from './dto/update-publisher.dto';
 import { PublisherService } from './publisher.service';
@@ -6,12 +6,18 @@ import { Publisher } from './publisher.entity'
 import { PublisherPublicDto } from './dto/publisher-public.dto';
 import { PublisherMapper } from './publisher.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
 
 @Controller('publishers')
 export class PublisherController {
     constructor(private readonly publisherService: PublisherService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Post()
     async create(
         @Body() createPublisherDto: CreatePublisherDto
@@ -40,6 +46,8 @@ export class PublisherController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +59,8 @@ export class PublisherController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

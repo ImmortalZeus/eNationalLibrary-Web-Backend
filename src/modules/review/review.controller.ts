@@ -12,12 +12,14 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class ReviewController {
     constructor(private readonly reviewService: ReviewService) {}
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(@Body() createReviewDto: CreateReviewDto): Promise<string> {
         const review = await this.reviewService.create(createReviewDto);
         return review.reviewId;
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get()
     async findAll(
         @Query('relations', ParseRelationsPipe) relations: string[]
@@ -26,6 +28,7 @@ export class ReviewController {
         return reviews.map(r => ReviewMapper.toReviewPublicDto(r));
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async findOneById(
         @Param('id') id: string,
@@ -35,6 +38,7 @@ export class ReviewController {
         return review ? ReviewMapper.toReviewPublicDto(review) : null;
     }
 
+    @UseGuards(JwtAuthGuard)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -43,6 +47,7 @@ export class ReviewController {
         return await this.reviewService.updateOneById(id, updateReviewDto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async removeOneById(@Param('id') id: string): Promise<boolean> {
         return await this.reviewService.removeOneById(id);

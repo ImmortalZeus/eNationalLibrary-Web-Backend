@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
 import { AuthorService } from './author.service';
@@ -6,12 +6,18 @@ import { Author } from './author.entity'
 import { AuthorPublicDto } from './dto/author-public.dto';
 import { AuthorMapper } from './author.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('authors')
 export class AuthorController {
     constructor(private readonly authorService: AuthorService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Post()
     async create(
         @Body() createAuthorDto: CreateAuthorDto
@@ -40,6 +46,8 @@ export class AuthorController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +59,8 @@ export class AuthorController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

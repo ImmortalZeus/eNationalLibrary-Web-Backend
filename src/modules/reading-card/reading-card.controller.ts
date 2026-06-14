@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateReadingCardDto } from './dto/create-reading-card.dto';
 import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { ReadingCardService } from './reading-card.service';
@@ -6,12 +6,14 @@ import { ReadingCard } from './reading-card.entity'
 import { ReadingCardPublicDto } from './dto/reading-card-public.dto';
 import { ReadingCardMapper } from './reading-card.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('reading-cards')
 export class ReadingCardController {
     constructor(private readonly readingCardService: ReadingCardService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(
         @Body() createReadingCardDto: CreateReadingCardDto
@@ -22,6 +24,7 @@ export class ReadingCardController {
     }
 
     // READ ALL
+    @UseGuards(JwtAuthGuard)
     @Get()
     async findAll(
         @Query('relations', ParseRelationsPipe) relations: string[]
@@ -31,6 +34,7 @@ export class ReadingCardController {
     }
 
     // READ ONE
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async findOneById(
         @Param('id') id: string,
@@ -41,6 +45,7 @@ export class ReadingCardController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -52,6 +57,7 @@ export class ReadingCardController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

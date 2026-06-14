@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
 import { GenreService } from './genre.service';
@@ -6,12 +6,18 @@ import { Genre } from './genre.entity'
 import { GenrePublicDto } from './dto/genre-public.dto';
 import { GenreMapper } from './genre.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('genres')
 export class GenreController {
     constructor(private readonly genreService: GenreService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Post()
     async create(
         @Body() createGenreDto: CreateGenreDto
@@ -40,6 +46,8 @@ export class GenreController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +59,8 @@ export class GenreController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

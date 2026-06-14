@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateBorrowRecordDto } from './dto/create-borrow-record.dto';
 import { UpdateBorrowRecordDto } from './dto/update-borrow-record.dto';
 import { BorrowRecordService } from './borrow-record.service';
@@ -6,12 +6,16 @@ import { BorrowRecord } from './borrow-record.entity'
 import { BorrowRecordPublicDto } from './dto/borrow-record-public.dto';
 import { BorrowRecordMapper } from './borrow-record.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('borrow-records')
 export class BorrowRecordController {
     constructor(private readonly borrowRecordService: BorrowRecordService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(
         @Body() createBorrowRecordDto: CreateBorrowRecordDto
@@ -40,6 +44,7 @@ export class BorrowRecordController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +56,7 @@ export class BorrowRecordController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

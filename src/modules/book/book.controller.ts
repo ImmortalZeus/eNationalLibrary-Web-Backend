@@ -8,13 +8,17 @@ import { BookMapper } from './book.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
+import { Roles } from '../auth/roles.decorator';
 
-@UseGuards(JwtAuthGuard)
 @Controller('books')
 export class BookController {
     constructor(private readonly bookService: BookService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Post()
     async create(
         @Body() createBookDto: CreateBookDto
@@ -43,6 +47,8 @@ export class BookController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -54,6 +60,8 @@ export class BookController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

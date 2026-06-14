@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateReturnRecordDto } from './dto/create-return-record.dto';
 import { UpdateReturnRecordDto } from './dto/update-return-record.dto';
 import { ReturnRecordService } from './return-record.service';
@@ -6,12 +6,14 @@ import { ReturnRecord } from './return-record.entity'
 import { ReturnRecordPublicDto } from './dto/return-record-public.dto';
 import { ReturnRecordMapper } from './return-record.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('return-records')
 export class ReturnRecordController {
     constructor(private readonly returnRecordService: ReturnRecordService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard)
     @Post()
     async create(
         @Body() createReturnRecordDto: CreateReturnRecordDto
@@ -21,6 +23,7 @@ export class ReturnRecordController {
     }
 
     // READ ALL
+    @UseGuards(JwtAuthGuard)
     @Get()
     async findAll(
         @Query('relations', ParseRelationsPipe) relations: string[]
@@ -30,6 +33,7 @@ export class ReturnRecordController {
     }
 
     // READ ONE
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     async findOneById(
         @Param('id') id: string,
@@ -40,6 +44,7 @@ export class ReturnRecordController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +56,7 @@ export class ReturnRecordController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,

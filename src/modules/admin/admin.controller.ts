@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Put, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Param, Get, Post, Put, Delete, Query, UseGuards } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { AdminService } from './admin.service';
@@ -6,12 +6,18 @@ import { Admin } from './admin.entity';
 import { AdminPublicDto } from './dto/admin-public.dto';
 import { AdminMapper } from './admin.mapper';
 import { ParseRelationsPipe } from 'src/common/queryPipes/parseRelations.pipe';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { UserRole } from 'src/common/enums/user/userRole.enum';
 
 @Controller('admins')
 export class AdminController {
     constructor(private readonly adminService: AdminService) {}
 
     // CREATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Post()
     async create(
         @Body() createAdminDto: CreateAdminDto
@@ -40,6 +46,8 @@ export class AdminController {
     }
 
     // UPDATE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Put(':id')
     async updateOneById(
         @Param('id') id: string,
@@ -51,6 +59,8 @@ export class AdminController {
     }
 
     // DELETE
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles(UserRole.Admin)
     @Delete(':id')
     async removeOneById(
         @Param('id') id: string,
