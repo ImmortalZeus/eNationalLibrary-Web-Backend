@@ -8,6 +8,7 @@ import { plainToInstance } from 'class-transformer';
 import { UpdateReadingCardDto } from './dto/update-reading-card.dto';
 import { ReadingCardMapper } from './reading-card.mapper';
 import { ReaderService } from '../reader/reader.service';
+import { PromotionService } from '../promotion/promotion.service';
 
 @Injectable()
 export class ReadingCardService {
@@ -17,22 +18,44 @@ export class ReadingCardService {
 
     @Inject(forwardRef(() => ReaderService))
     private readonly readerService: ReaderService,
+
+    @Inject(forwardRef(() => PromotionService))
+    private readonly promotionService: PromotionService,
     ) {}
 
-    async create(dto: CreateReadingCardDto): Promise<ReadingCard> {        
+    async create(dto: CreateReadingCardDto): Promise<ReadingCard> {
         const readingCard = await ReadingCardMapper.createFromDto(dto);
 
         if(dto.readerId) {
-            const reader = await this.readerService.findOneById(dto.readerId, []);
+            const reader = await this.readerService.findOneById(dto.readerId, ['user']);
             if(reader) {
                 readingCard.reader = reader;
+
+                // Auto-apply promotion
+                const activationDate = readingCard.activationDate;
+                const cardType = readingCard.type;
+                const dateOfBirth = reader.user?.dateOfBirth || null;
+
+                const bestPromotion = await this.promotionService.findBestPromotion(
+                    cardType,
+                    dateOfBirth,
+                    activationDate,
+                );
+
+                const pricing = this.promotionService.applyPromotionToCard(bestPromotion, cardType);
+
+                readingCard.originalPrice = pricing.originalPrice;
+                readingCard.discountedPrice = pricing.discountedPrice;
+                readingCard.effectiveMaxBorrowedBooks = pricing.effectiveMaxBorrowedBooks;
+                readingCard.effectiveMaxBorrowDurationDays = pricing.effectiveMaxBorrowDurationDays;
+                readingCard.appliedPromotion = bestPromotion;
             } else {
                 throw new NotFoundException(`Reader with id ${dto.readerId} not found`);
             }
         }
-        
+
         const saved = await this.save(readingCard);
-        
+
         return saved;
     }
 
