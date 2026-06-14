@@ -20,7 +20,7 @@ This repository contains only the **backend** service. The frontend lives in a s
 
 ## ✨ Features
 
-The backend is split into 12 domain modules, each exposing a REST resource under the `/api` prefix:
+The backend is split into 13 domain modules, each exposing a REST resource under the `/api` prefix:
 
 | Module | Resource | Description |
 |--------|----------|-------------|
@@ -35,6 +35,7 @@ The backend is split into 12 domain modules, each exposing a REST resource under
 | `return-records` | `/api/return-records` | Book return transactions |
 | `reading-cards` | `/api/reading-cards` | Library card management |
 | `reviews` | `/api/reviews` | Book reviews |
+| `promotions` | `/api/promotions` | Promotion & discount management |
 
 > The `users` controller is currently disabled and not exposed.
 
@@ -66,6 +67,7 @@ backend/
 │       ├── return-record/      # (scaffold: return-records)
 │       ├── reading-card/       # (scaffold: reading-cards)
 │       ├── review/             # (scaffold: reviews)
+│       ├── promotion/          # (scaffold: promotions)
 │       └── user/               # currently inactive
 ├── scripts/
 │   ├── seed-admin.js           # One-time admin account seed
@@ -243,6 +245,7 @@ All routes are prefixed with `/api`.
 | `*` | `/return-records` | bearer | Track return transactions |
 | `*` | `/reading-cards` | bearer | Library card management |
 | `*` | `/reviews` | bearer | Book reviews |
+| `*` | `/promotions` | bearer | Promotion & discount management |
 
 `bearer` means a valid JWT in the `Authorization: Bearer <token>` header is required. Some routes use a `@Roles(...)` decorator and will additionally check the caller's role.
 
