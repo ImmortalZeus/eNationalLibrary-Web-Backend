@@ -1,3 +1,4 @@
+import { plainToInstance } from 'class-transformer';
 import { Promotion } from './promotion.entity';
 import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
@@ -22,7 +23,7 @@ export class PromotionMapper {
         return promotion;
     }
 
-    static updateFromDto(promotion: Promotion, dto: UpdatePromotionDto): void {
+    static updateFromDto(promotion: Promotion, dto: UpdatePromotionDto): Promotion {
         if (dto.name !== undefined) promotion.name = dto.name;
         if (dto.description !== undefined) promotion.description = dto.description;
         if (dto.discountType !== undefined) promotion.discountType = dto.discountType;
@@ -34,26 +35,12 @@ export class PromotionMapper {
         if (dto.applicableAgeMax !== undefined) promotion.applicableAgeMax = dto.applicableAgeMax;
         if (dto.startDate !== undefined) promotion.startDate = new Date(dto.startDate);
         if (dto.endDate !== undefined) promotion.endDate = new Date(dto.endDate);
+        return promotion;
     }
 
     static toPromotionPublicDto(promotion: Promotion): PromotionPublicDto {
-        return {
-            promotionId: promotion.promotionId,
-            name: promotion.name,
-            description: promotion.description,
-            discountType: promotion.discountType,
-            discountValue: promotion.discountValue,
-            maxBorrowedBooksOverride: promotion.maxBorrowedBooksOverride,
-            maxBorrowDurationOverride: promotion.maxBorrowDurationOverride,
-            applicableCardTypes: promotion.applicableCardTypes,
-            applicableAgeMin: promotion.applicableAgeMin,
-            applicableAgeMax: promotion.applicableAgeMax,
-            startDate: promotion.startDate,
-            endDate: promotion.endDate,
-            isActive: promotion.isActive,
-            priority: promotion.priority,
-            createdAt: promotion.createdAt,
-            updatedAt: promotion.updatedAt,
-        };
+        return plainToInstance(PromotionPublicDto, promotion, {
+            excludeExtraneousValues: true,
+        });
     }
 }
