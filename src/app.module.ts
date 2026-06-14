@@ -23,6 +23,7 @@ import { BookModule } from './modules/book/book.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ReturnRecordModule } from './modules/return-record/return-record.module';
+import { PromotionModule } from './modules/promotion/promotion.module';
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -53,7 +54,8 @@ import { ReturnRecordModule } from './modules/return-record/return-record.module
         BorrowRecordModule,
         AuthModule,
         ReviewModule,
-        ReturnRecordModule
+        ReturnRecordModule,
+        PromotionModule
     ],
     controllers: [AppController],
     providers: [AppService],
