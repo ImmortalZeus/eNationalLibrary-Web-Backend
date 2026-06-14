@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { Entity, Column, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { UserGender } from 'src/common/enums/user/userGender.enum';
 import { UserRole } from 'src/common/enums/user/userRole.enum';
@@ -22,6 +23,10 @@ export class User {
 
     @Column({ type: 'varchar', nullable: true, default: null })
     phoneNumber: string | null;
+
+    @Column({ type: 'date', nullable: true, default: null })
+    @Type(() => Date)
+    dateOfBirth: Date | null;
 
     @Column({ type: 'varchar', nullable: false, default: UserRole.Reader })
     role: UserRole;
