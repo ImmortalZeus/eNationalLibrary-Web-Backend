@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Promotion } from './promotion.entity';
@@ -6,8 +6,6 @@ import { CreatePromotionDto } from './dto/create-promotion.dto';
 import { UpdatePromotionDto } from './dto/update-promotion.dto';
 import { PromotionMapper } from './promotion.mapper';
 import { ReadingCardService } from '../reading-card/reading-card.service';
-import { ReaderService } from '../reader/reader.service';
-import { User } from '../user/user.entity';
 import { ReadingCard } from '../reading-card/reading-card.entity';
 import { ReadingCardType } from 'src/common/enums/readingCard/readingCardType.enum';
 import { ReadingCardConfig } from 'src/common/configs/readingCard.config';
@@ -21,8 +19,6 @@ export class PromotionService {
         @Inject(forwardRef(() => ReadingCardService))
         private readonly readingCardService: ReadingCardService,
 
-        @Inject(forwardRef(() => ReaderService))
-        private readonly readerService: ReaderService,
     ) {}
 
     async create(dto: CreatePromotionDto): Promise<Promotion> {
@@ -123,7 +119,7 @@ export class PromotionService {
         if (promotions.length === 0) return null;
 
         // Sort by: higher discount first, then more extended limits
-        return promotions.sort((a, b) => {
+        return [...promotions].sort((a, b) => {
             // Compare discount value (percentage wins over fixed)
             const aDiscountScore = a.discountType === 'Percentage' ? a.discountValue * 100 : a.discountValue;
             const bDiscountScore = b.discountType === 'Percentage' ? b.discountValue * 100 : b.discountValue;
@@ -137,6 +133,23 @@ export class PromotionService {
             const bLimitBenefit = (b.maxBorrowedBooksOverride || 0) + (b.maxBorrowDurationOverride || 0);
             return bLimitBenefit - aLimitBenefit;
         })[0];
+    }
+
+    // Check if a reading card matches the promotion's applicable criteria
+    private doesCardMatchPromotion(card: ReadingCard, promotion: Promotion): boolean {
+        if (!card.reader || !card.reader.user) return false;
+
+        const cardType = card.type;
+        const dateOfBirth = card.reader.user.dateOfBirth;
+
+        if (!promotion.applicableCardTypes.includes(cardType)) return false;
+
+        if (dateOfBirth) {
+            const readerAge = this.calculateAge(dateOfBirth, card.activationDate);
+            if (readerAge < promotion.applicableAgeMin || readerAge > promotion.applicableAgeMax) return false;
+        }
+
+        return true;
     }
 
     // Apply promotion to a reading card
@@ -186,22 +199,10 @@ export class PromotionService {
 
         // Filter and apply to matching cards
         for (const card of allCards) {
-            if (!card.reader || !card.reader.user) continue;
-
-            const cardType = card.type;
-            const dateOfBirth = card.reader.user.dateOfBirth;
-            const activationDate = card.activationDate;
-
-            // Check if promotion applies
-            if (!promotion.applicableCardTypes.includes(cardType)) continue;
-
-            if (dateOfBirth) {
-                const readerAge = this.calculateAge(dateOfBirth, activationDate);
-                if (readerAge < promotion.applicableAgeMin || readerAge > promotion.applicableAgeMax) continue;
-            }
+            if (!this.doesCardMatchPromotion(card, promotion)) continue;
 
             // Apply promotion
-            const result = this.applyPromotionToCard(promotion, cardType);
+            const result = this.applyPromotionToCard(promotion, card.type);
             card.originalPrice = result.originalPrice;
             card.discountedPrice = result.discountedPrice;
             card.effectiveMaxBorrowedBooks = result.effectiveMaxBorrowedBooks;
@@ -251,20 +252,6 @@ export class PromotionService {
 
         const allCards = await this.readingCardService.findManyByOptions({}, ['reader', 'reader.user']);
 
-        return allCards.filter(card => {
-            if (!card.reader || !card.reader.user) return false;
-
-            const cardType = card.type;
-            const dateOfBirth = card.reader.user.dateOfBirth;
-
-            if (!promotion.applicableCardTypes.includes(cardType)) return false;
-
-            if (dateOfBirth) {
-                const readerAge = this.calculateAge(dateOfBirth, card.activationDate);
-                if (readerAge < promotion.applicableAgeMin || readerAge > promotion.applicableAgeMax) return false;
-            }
-
-            return true;
-        });
+        return allCards.filter(card => this.doesCardMatchPromotion(card, promotion));
     }
 }
