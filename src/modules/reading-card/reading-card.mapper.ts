@@ -5,6 +5,7 @@ import { CreateReadingCardDto } from './dto/create-reading-card.dto';
 import { plainToInstance } from 'class-transformer';
 import { ReadingCardConfig } from 'src/common/configs/readingCard.config';
 import { ReaderMapper } from '../reader/reader.mapper';
+import { PromotionMapper } from '../promotion/promotion.mapper';
 
 export class ReadingCardMapper {
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -32,7 +33,8 @@ export class ReadingCardMapper {
     static toReadingCardPublicDto(readingCard: ReadingCard): ReadingCardPublicDto {
         return plainToInstance(ReadingCardPublicDto, {
                 ...readingCard,
-                reader: readingCard.reader ? ReaderMapper.toReaderPublicDto(readingCard.reader) : undefined
+                reader: readingCard.reader ? ReaderMapper.toReaderPublicDto(readingCard.reader) : undefined,
+                appliedPromotion: readingCard.appliedPromotion ? PromotionMapper.toPromotionPublicDto(readingCard.appliedPromotion) : null,
             }, {
             excludeExtraneousValues: true,
         });

@@ -18,6 +18,9 @@ export class UserPublicDto {
     email: string;
 
     @Expose()
+    dateOfBirth: Date | null;
+
+    @Expose()
     phoneNumber: string | null;
 
     @Expose()
